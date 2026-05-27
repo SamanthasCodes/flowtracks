@@ -1,14 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>flowtracks</title>
-  <link rel="stylesheet" href="style.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #222; }
+
+.page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ---- Header ---- */
+.header {
+    flex-shrink: 0;
+    padding: 10px 18px 6px 18px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+.header h1 {
+    font-size: 25px;
+    font-weight: 700;
+    color: #0d3b66;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+}
+.header p {
+    font-size: 15px;
+    line-height: 1.4;
+    color: #444;
+    margin-bottom: 4px;
+}
+.header p:last-child {
+    margin-bottom: 0;
+}
+
+/* ---- Map ---- */
+.map-container {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+    background: #08519c;
+}
+#coastline, #canvas, #land, #tracers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+#land {
+    pointer-events: none;
+}
+#tracers {
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ---- Footer ---- */
+.footer {
+    flex-shrink: 0;
+    padding: 5px 18px 7px 18px;
+    background: #f8f8f8;
+    border-top: 1px solid #e0e0e0;
+    font-size: 9px;
+    line-height: 1.4;
+    color: #555;
+}
+.footer h2 {
+    font-size: 10px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 3px;
+    margin-bottom: 2px;
+}
+.footer h2:first-child {
+    margin-top: 0;
+}
+.footer .ref {
+    margin-bottom: 3px;
+    padding-left: 14px;
+    text-indent: -14px;
+}
+.footer .ref:last-child {
+    margin-bottom: 0;
+}
+.footer a {
+    color: #0d3b66;
+    text-decoration: none;
+}
+.footer a:hover {
+    text-decoration: underline;
+}
+</style>
 </head>
 <body>
-  <h1>flowtracks</h1>
-  <p>Julio Chavez,Baback Elmieh,Samantha Eaton</p>
-  <p>Repository: <a href="https://gitlab.cs.washington.edu/cse512/26sp/fp/flowtracks">https://gitlab.cs.washington.edu/cse512/26sp/fp/flowtracks</a></p>
-  <script src="main.js"></script>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Where does my trash go?</h1>
+        <p>Plastic is one of the most widespread environmental pollutants on Earth. Its production has grown so rapidly that disposal and recycling systems cannot keep up. Each year, an estimated 5 to 13 million tons of plastic enter the ocean<sup>1</sup>, yet only about 300,000 tons can currently be accounted for in observations<sup>2</sup>. A major reason for this discrepancy is the difficulty of measuring and tracking plastic debris in the marine environment<sup>3</sup>.</p>
+        <p>While large-scale ocean circulation (spanning hundreds of kilometers) largely determines where plastic accumulates, smaller-scale turbulent motions (on the order of kilometers or less) control how widely the particles disperse. Predicting this spreading remains a major scientific challenge and an active area of research.</p>
+        <p>The visualization below allows you to release a cloud of virtual plastic particles and explore how they evolve over time. By adjusting the level of turbulence affecting their motion, you can see how small-scale ocean dynamics influence the particles' large-scale distribution and ultimate fate.</p>
+    </div>
+
+    <!-- MAP -->
+    <div class="map-container">
+        <canvas id="coastline"></canvas>
+        <canvas id="canvas"></canvas>
+        <canvas id="land"></canvas>
+        <canvas id="tracers"></canvas>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <h2>Data Sources</h2>
+        <div><strong>Ocean surface currents:</strong> OSCAR (Ocean Surface Current Analyses Real-time). Produced by Earth &amp; Space Research (ESR) from satellite sea surface height, wind, and temperature data. Distributed by NASA PO.DAAC (DOI: <a href="https://doi.org/10.5067/OSCAR-25F20">10.5067/OSCAR-25F20</a>).</div>
+        <div><strong>Land shaded relief:</strong> Esri World Shaded Relief, derived from SRTM (Shuttle Radar Topography Mission) elevation data. Sources: Esri, HERE, Garmin, USGS, and the GIS User Community.</div>
+
+        <h2>References</h2>
+        <div class="ref"><sup>1</sup> Jambeck, J. R., Geyer, R., Wilcox, C., et al. (2015). Plastic waste inputs from land into the ocean. <i>Science</i>, 347(6223), 768&ndash;771. <a href="https://doi.org/10.1126/science.1260352">doi:10.1126/science.1260352</a></div>
+        <div class="ref"><sup>2</sup> van Sebille, E., Wilcox, C., Lebreton, L., et al. (2015). A global inventory of small floating plastic debris. <i>Environmental Research Letters</i>, 10(12), 124006. <a href="https://doi.org/10.1088/1748-9326/10/12/124006">doi:10.1088/1748-9326/10/12/124006</a></div>
+        <div class="ref"><sup>3</sup> DiBenedetto, M. H. (2025). The fluid mechanics of ocean microplastics. <i>Annual Review of Fluid Mechanics</i>, ahead of print. <a href="https://doi.org/10.1146/annurev-fluid-120423-012604">doi:10.1146/annurev-fluid-120423-012604</a></div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+<script src="wind-gl.js"></script>
+<script src="index.js"></script>
 </body>
 </html>
