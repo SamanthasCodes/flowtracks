@@ -331,7 +331,7 @@ gui.add(wind, 'fadeOpacity', 0.9, 0.999).step(0.001).updateDisplay();
 gui.add(wind, 'speedFactor', 0.5, 3.0);
 gui.add(wind, 'dropRate', 0, 0.05);
 gui.add(wind, 'dropRateBump', 0, 0.2);
-gui.add(wind, 'diffusion', 0, 0.005).step(0.0001);
+gui.add(wind, 'diffusion', 0, 0.002).step(0.0001);
 
 const meta = {
     'date (YYYY-MM-DD)': '2021-01-08',

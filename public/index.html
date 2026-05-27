@@ -3,7 +3,13 @@
 <head>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #222; }
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow-y: auto;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #222;
+}
 
 .page {
     display: flex;
@@ -36,11 +42,18 @@ html, body { height: 100%; overflow: hidden; font-family: 'Helvetica Neue', Helv
 }
 
 /* ---- Map ---- */
-.map-container {
+.map-wrapper {
     flex: 1;
-    position: relative;
-    min-height: 0;
+    display: flex;
+    justify-content: center;
+    padding: 10px 24px;
     background: #08519c;
+}
+.map-container {
+    width: 100%;
+    max-width: 1200px;
+    aspect-ratio: 2 / 1;
+    position: relative;
 }
 #coastline, #canvas, #land, #tracers {
     position: absolute;
@@ -108,12 +121,15 @@ html, body { height: 100%; overflow: hidden; font-family: 'Helvetica Neue', Helv
     </div>
 
     <!-- MAP -->
-    <div class="map-container">
-        <canvas id="coastline"></canvas>
-        <canvas id="canvas"></canvas>
-        <canvas id="land"></canvas>
-        <canvas id="tracers"></canvas>
+    <div class="map-wrapper">
+        <div class="map-container">
+            <canvas id="coastline"></canvas>
+            <canvas id="canvas"></canvas>
+            <canvas id="land"></canvas>
+            <canvas id="tracers"></canvas>
+        </div>
     </div>
+
 
     <!-- FOOTER -->
     <div class="footer">
