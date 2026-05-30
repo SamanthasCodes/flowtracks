@@ -560,7 +560,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             <div class="sidebar-controls">
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">How much random small-scale turbulence scatters the particles. Higher values make the cloud spread faster and wider.</div>
+                    <div class="ctrl-tooltip">adjusts random small-scale turbulence; higher values make the particle cloud spread faster and farther.</div>
                     <div class="ctrl-header">
                         <span class="ctrl-label">Diffusion</span>
                         <span class="ctrl-value" id="val-diffusion">0.001</span>
@@ -571,7 +571,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">How many simulated days the particle cloud survives before disappearing. Longer lifetimes let you watch the full drift across the ocean.</div>
+                    <div class="ctrl-tooltip">adjusts how long the particle cloud remains visible; longer lifetimes allow the particle cloud to visibly drift farther across the oceans.</div>
                     <div class="ctrl-header">
                         <span class="ctrl-label">Lifetime (days)</span>
                         <span class="ctrl-value" id="val-lifetime">30</span>
@@ -582,7 +582,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">How many particles are released per click. More particles give a denser picture of the spreading pattern.</div>
+                    <div class="ctrl-tooltip">adjusts how many particles are released per click; higher counts create a denser view of the spreading pattern.</div>
                     <div class="ctrl-header">
                         <span class="ctrl-label">Particle count</span>
                         <span class="ctrl-value" id="val-particles">65,000</span>
@@ -593,7 +593,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">Toggles the visible path trail behind each particle. Turn off for a cleaner view of just the current positions.</div>
+                    <div class="ctrl-tooltip">controls particle trails; toggle on to trace past movement or off for a cleaner view of only current particle cloud positions.</div>
                     <div class="ctrl-toggle-row">
                         <span class="ctrl-label">Trajectories</span>
                         <div class="ctrl-toggle" id="toggle-trajectories" onclick="toggleTrajectories()">
@@ -603,7 +603,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">Toggles ocean current arrows on the map. Helpful for identifying which current is driving your particles.</div>
+                    <div class="ctrl-tooltip">controls ocean current labels; toggle on to identify large-scale flows that may influence particle movement.</div>
                     <div class="ctrl-toggle-row">
                         <span class="ctrl-label">Currents</span>
                         <div class="ctrl-toggle" id="toggle-currents" onclick="toggleCurrents()">
@@ -613,7 +613,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">Doubles canvas pixel density for sharp rendering on high-DPI screens. Disable on slower machines to improve performance.</div>
+                    <div class="ctrl-tooltip">controls canvas sharpness for high-resolution screens; toggle off to enhance performance if simulation runs slowly.</div>
                     <div class="ctrl-toggle-row">
                         <span class="ctrl-label">Retina display</span>
                         <div class="ctrl-toggle" id="toggle-retina" onclick="toggleRetina()">
