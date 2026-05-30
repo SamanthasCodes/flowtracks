@@ -30,6 +30,89 @@ heatCanvas.height = HEAT_H;
 var heatCtx = heatCanvas.getContext('2d');
 
 var chartClouds = [];
+
+var chartCanvas = document.createElement('canvas');
+chartCanvas.width = 248;
+chartCanvas.height = 120;
+chartCanvas.style.cssText = 'display:block;';
+var chartCtx = chartCanvas.getContext('2d');
+
+function drawChart() {
+    var cw = chartCanvas.width, ch = chartCanvas.height;
+    chartCtx.clearRect(0, 0, cw, ch);
+
+    if (chartClouds.length === 0) {
+        chartCtx.fillStyle = 'rgba(240,237,232,0.2)';
+        chartCtx.font = '14px "Cormorant SC", serif';
+        chartCtx.textAlign = 'center';
+        chartCtx.fillText('Release particles to track spread', cw / 2, ch / 2);
+        chartCtx.textAlign = 'left';
+        return;
+    }
+
+    var maxAge = 1, maxSpread = 0.01;
+    for (var c = 0; c < chartClouds.length; c++) {
+        var hist = chartClouds[c].spreadHistory;
+        for (var i = 0; i < hist.length; i++) {
+            if (i > maxAge) maxAge = i;
+            if (hist[i] > maxSpread) maxSpread = hist[i];
+        }
+    }
+    maxAge = Math.max(maxAge, 10);
+    maxSpread = Math.max(maxSpread, 0.01);
+
+    var padL = 28, padR = 6, padT = 16, padB = 18;
+    var plotW = cw - padL - padR;
+    var plotH = ch - padT - padB;
+
+    chartCtx.strokeStyle = 'rgba(74,216,192,0.12)';
+    chartCtx.lineWidth = 0.5;
+    for (var i = 0; i <= 3; i++) {
+        var y = padT + plotH * i / 3;
+        chartCtx.beginPath();
+        chartCtx.moveTo(padL, y);
+        chartCtx.lineTo(padL + plotW, y);
+        chartCtx.stroke();
+    }
+
+    chartCtx.fillStyle = 'rgba(240,237,232,0.3)';
+    chartCtx.font = '11px "Cormorant", serif';
+    chartCtx.textAlign = 'right';
+    chartCtx.fillText((maxSpread * 360).toFixed(1) + '\u00b0', padL - 3, padT + 8);
+    chartCtx.fillText('0', padL - 3, padT + plotH + 3);
+
+    // Rotated LONGITUDE y-axis label
+    chartCtx.save();
+    chartCtx.fillStyle = 'rgba(240,237,232,0.25)';
+    chartCtx.font = '11px "Cormorant SC", serif';
+    chartCtx.textAlign = 'center';
+    chartCtx.translate(8, padT + plotH / 2);
+    chartCtx.rotate(-Math.PI / 2);
+    chartCtx.fillText('LONGITUDE', 0, 0);
+    chartCtx.restore();
+
+    // STEPS x-axis label
+    chartCtx.fillStyle = 'rgba(240,237,232,0.25)';
+    chartCtx.font = '11px "Cormorant SC", serif';
+    chartCtx.textAlign = 'center';
+    chartCtx.fillText('STEPS', padL + plotW / 2, ch - 2);
+
+    var colors = ['#c8f03c', '#4dd8c0', '#2ab8a0', '#f0c83c', '#a8e040', '#7dd8c0'];
+    for (var c = 0; c < chartClouds.length; c++) {
+        var hist = chartClouds[c].spreadHistory;
+        if (hist.length < 2) continue;
+        chartCtx.strokeStyle = colors[c % colors.length];
+        chartCtx.lineWidth = 1.5;
+        chartCtx.beginPath();
+        for (var i = 0; i < hist.length; i++) {
+            var px = padL + (i / maxAge) * plotW;
+            var py = padT + plotH - (hist[i] / maxSpread) * plotH;
+            if (i === 0) chartCtx.moveTo(px, py);
+            else chartCtx.lineTo(px, py);
+        }
+        chartCtx.stroke();
+    }
+}
 var borderData = null;
 var shadedReliefPixels = null;
 
@@ -54,16 +137,11 @@ wind.diffusion = 0.001;
 // ================================================================
 
 function heatmapColor(t) {
-    var r, g, b;
-    if (t < 0.25)
-      { r = 0;     g = t * 4;        b = 1; }
-    else if (t < 0.5)
-      { r = (t - 0.25) * 4;  g = 1; b = 1 - (t - 0.25) * 4; }
-    else if (t < 0.75)
-      { r = 1;     g = 1 - (t - 0.5) * 4;  b = 0; }
-    else
-      { r = 1;     g = 0;                 b = 0; }
-    return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+    // dark ocean → toxic yellow-green based on density
+    var r = Math.floor(t * 200);
+    var g = Math.floor(40 + t * 200);
+    var b = Math.floor(t * 60);
+    return [r, g, b];
 }
 
 function drawHeatmap() {
@@ -103,95 +181,9 @@ function drawHeatmap() {
 // SPREAD CHART
 // ================================================================
 
-var chartCanvas = document.createElement('canvas');
-chartCanvas.width = 280;
-chartCanvas.height = 200;
-chartCanvas.style.cssText = [
-    'position:fixed',
-    'bottom:10px',
-    'right:10px',
-    'background:rgba(0,0,0,0.7)',
-    'border:1px solid #040404',
-    'border-radius:4px',
-    'z-index:100'
-].join(';');
-document.body.appendChild(chartCanvas);
-var chartCtx = chartCanvas.getContext('2d');
+// Chart removed
 
-function drawChart() {
-    var cw = chartCanvas.width, ch = chartCanvas.height;
-    chartCtx.clearRect(0, 0, cw, ch);
-
-    chartCtx.fillStyle = 'rgba(0,0,0,0.75)';
-    chartCtx.fillRect(0, 0, cw, ch);
-
-    chartCtx.fillStyle = '#ccc';
-    chartCtx.font = '11px sans-serif';
-    chartCtx.fillText('Cloud spread over time', 8, 16);
-
-    if (chartClouds.length === 0) {
-        chartCtx.fillStyle = '#666';
-        chartCtx.font = '10px sans-serif';
-        chartCtx.textAlign = 'center';
-        chartCtx.fillText('Click the ocean to release particles', cw / 2, ch / 2);
-        return;
-    }
-
-    var maxAge = 1, maxSpread = 0.01;
-    for (var c = 0; c < chartClouds.length; c++) {
-        var hist = chartClouds[c].spreadHistory;
-        for (var i = 0; i < hist.length; i++) {
-            if (i > maxAge) maxAge = i;
-            if (hist[i] > maxSpread) maxSpread = hist[i];
-        }
-    }
-    maxAge = Math.max(maxAge, 10);
-    maxSpread = Math.max(maxSpread, 0.01);
-
-    var padL = 35, padR = 8, padT = 24, padB = 18;
-    var plotW = cw - padL - padR;
-    var plotH = ch - padT - padB;
-
-    chartCtx.strokeStyle = '#444';
-    chartCtx.lineWidth = 0.5;
-    for (var i = 0; i <= 4; i++) {
-        var y = padT + plotH * i / 4;
-        chartCtx.beginPath();
-        chartCtx.moveTo(padL, y);
-        chartCtx.lineTo(padL + plotW, y);
-        chartCtx.stroke();
-    }
-
-    chartCtx.fillStyle = '#888';
-    chartCtx.font = '9px sans-serif';
-    chartCtx.textAlign = 'right';
-    chartCtx.fillText((maxSpread * 360).toFixed(1) + '\u00b0', padL - 4, padT + 10);
-    chartCtx.fillText('0', padL - 4, padT + plotH + 4);
-
-    chartCtx.textAlign = 'center';
-    chartCtx.fillText('0', padL, padT + plotH + 14);
-    chartCtx.fillText(maxAge, padL + plotW, padT + plotH + 14);
-    chartCtx.fillStyle = '#666';
-    chartCtx.font = '9px sans-serif';
-    chartCtx.fillText('Time step', padL + plotW / 2, padT + plotH + 14);
-
-    var colors = ['#ff3333', '#33ff33', '#33ccff', '#ffcc33', '#ff33cc', '#33ffcc'];
-    for (var c = 0; c < chartClouds.length; c++) {
-        var hist = chartClouds[c].spreadHistory;
-        if (hist.length < 2) continue;
-
-        chartCtx.strokeStyle = colors[c % colors.length];
-        chartCtx.lineWidth = 1.5;
-        chartCtx.beginPath();
-        for (var i = 0; i < hist.length; i++) {
-            var px = padL + (i / maxAge) * plotW;
-            var py = padT + plotH - (hist[i] / maxSpread) * plotH;
-            if (i === 0) chartCtx.moveTo(px, py);
-            else chartCtx.lineTo(px, py);
-        }
-        chartCtx.stroke();
-    }
-}
+// drawChart removed
 
 // ================================================================
 // LAND FILL + COUNTRY BORDERS
@@ -576,8 +568,8 @@ function drawTracers() {
 
     if (tracerClouds.length === 0) return;
 
-    tracerCtx.strokeStyle = '#ff3333';
-    tracerCtx.fillStyle = '#ff3333';
+    tracerCtx.strokeStyle = '#c8f03c';
+    tracerCtx.fillStyle = '#c8f03c';
     tracerCtx.lineWidth = 1.5 * ratio;
 
     for (var c = 0; c < tracerClouds.length; c++) {
