@@ -2,145 +2,448 @@
 <html>
 <head>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@300;400&family=Cormorant:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow-y: auto;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    color: #222;
-}
+html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 
+/* Hide dat.gui default panel */
+.dg.ac { display: none !important; }
+
+/* ================================================================
+   MAIN SIMULATION PAGE
+   ================================================================ */
 .page {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    visibility: hidden;   /* hidden until sim entered; layout still computed */
 }
 
-/* ---- Header ---- */
-.header {
+/* ---- Navbar ---- */
+.sim-navbar {
     flex-shrink: 0;
-    padding: 10px 18px 6px 18px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: rgba(6, 18, 32, 0.98);
+    border-bottom: 1px solid rgba(74, 216, 192, 0.15);
+}
+.sim-brand { display: flex; align-items: baseline; gap: 10px; }
+.sim-logo  { font-size: 20px; font-weight: 700; color: #f0ede8; letter-spacing: -0.3px; }
+.sim-tagline { font-size: 11px; color: #4dd8c0; letter-spacing: 1px; }
+.sim-nav-links { display: flex; gap: 4px; }
+.sim-nav-link {
+    font-size: 11px;
+    color: rgba(240, 237, 232, 0.55);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    user-select: none;
+}
+.sim-nav-link:hover { border-color: rgba(74,216,192,0.3); color: #4dd8c0; }
+.sim-nav-link.active { border-color: rgba(74,216,192,0.4); color: #4dd8c0; }
+.sim-nav-link.danger { color: rgba(200,240,60,0.55); }
+.sim-nav-link.danger:hover { border-color: rgba(200,240,60,0.3); color: #c8f03c; }
+
+/* ---- Sim body ---- */
+.sim-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+/* ---- Sidebar ---- */
+.sim-sidebar {
+    width: 188px;
+    flex-shrink: 0;
+    background: #07192c;
+    border-right: 1px solid rgba(74,216,192,0.12);
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-head {
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid rgba(74,216,192,0.1);
+    flex-shrink: 0;
+}
+.sidebar-head-label { font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: #4dd8c0; }
+.sidebar-controls { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.sidebar-controls::-webkit-scrollbar { width: 3px; }
+.sidebar-controls::-webkit-scrollbar-thumb { background: rgba(74,216,192,0.2); border-radius: 2px; }
+
+.ctrl-item {}
+.ctrl-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.ctrl-label { font-size: 11px; font-weight: 500; color: rgba(240,237,232,0.6); letter-spacing: 0.3px; }
+.ctrl-value { font-size: 11px; color: #4dd8c0; font-family: monospace; }
+.ctrl-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.1);
+    outline: none;
+    cursor: pointer;
+}
+.ctrl-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #f0ede8;
+    border: 2px solid #2ab8a0;
+    cursor: grab;
+}
+.ctrl-slider::-moz-range-thumb {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #f0ede8;
+    border: 2px solid #2ab8a0;
+    cursor: grab;
+}
+.ctrl-toggle-row { display: flex; align-items: center; justify-content: space-between; }
+.ctrl-toggle {
+    width: 34px; height: 19px;
+    background: #2ab8a0;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.ctrl-toggle.off { background: rgba(255,255,255,0.12); }
+.ctrl-toggle-knob {
+    position: absolute;
+    right: 2px; top: 2px;
+    width: 15px; height: 15px;
     background: #fff;
-    border-bottom: 1px solid #e0e0e0;
+    border-radius: 50%;
+    transition: transform 0.2s;
 }
-.header h1 {
-    font-size: 25px;
-    font-weight: 700;
-    color: #0d3b66;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
+.ctrl-toggle.off .ctrl-toggle-knob { transform: translateX(-15px); }
+
+.sidebar-legend {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(74,216,192,0.1);
 }
-.header p {
-    font-size: 15px;
-    line-height: 1.4;
-    color: #444;
-    margin-bottom: 4px;
-}
-.header p:last-child {
-    margin-bottom: 0;
-}
+.legend-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(240,237,232,0.3); margin-bottom: 7px; }
+.legend-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+.legend-ends { display: flex; justify-content: space-between; font-size: 10px; color: rgba(240,237,232,0.3); }
 
 /* ---- Map ---- */
-.map-wrapper {
-    flex: 1;
+.sim-map { flex: 1; position: relative; background: #061a2e; overflow: hidden; }
+.sim-map canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+#land    { pointer-events: none; }
+#tracers { pointer-events: none; z-index: 10; }
+
+/* ---- Chart panel ---- */
+.sim-chart {
+    flex-shrink: 0;
+    height: 130px;
+    background: #07192c;
+    border-top: 1px solid rgba(74,216,192,0.12);
     display: flex;
-    justify-content: center;
-    padding: 10px 24px;
-    background: #08519c;
+    flex-direction: column;
+    padding: 10px 20px 8px;
 }
-.map-container {
-    width: 100%;
-    max-width: 1200px;
-    aspect-ratio: 2 / 1;
-    position: relative;
-}
-#coastline, #canvas, #land, #tracers {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-#land {
-    pointer-events: none;
-}
-#tracers {
-    pointer-events: none;
-    z-index: 10;
+.sim-chart-title { font-size: 11px; font-weight: 500; color: rgba(240,237,232,0.45); letter-spacing: 0.5px; margin-bottom: 6px; flex-shrink: 0; }
+.chart-host { flex: 1; position: relative; overflow: hidden; }
+.chart-host canvas {
+    position: absolute !important;
+    top: 0 !important; left: 0 !important;
+    bottom: auto !important; right: auto !important;
+    width: 100% !important; height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
 }
 
-/* ---- Footer ---- */
-.footer {
+/* ================================================================
+   OVERLAY SCREENS
+   ================================================================ */
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: linear-gradient(to bottom, #1a6b9a 0%, #0e4a70 15%, #082d50 35%, #041a32 60%, #010d1e 100%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.overlay.hidden { opacity: 0; pointer-events: none; transition: opacity 0.6s ease; }
+
+.ocean-btn {
+    background: transparent;
+    border: 1px solid rgba(77,216,192,0.5);
+    text-align: center;
+    border-radius: 40px;
+    padding: 8px 28px;
+    cursor: pointer;
+    color: #4dd8c0;
+    font-family: 'Cormorant SC', serif;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    align-self: center;
     flex-shrink: 0;
-    padding: 5px 18px 7px 18px;
-    background: #f8f8f8;
-    border-top: 1px solid #e0e0e0;
-    font-size: 9px;
-    line-height: 1.4;
-    color: #555;
+    margin-top: 24px;
 }
-.footer h2 {
-    font-size: 10px;
-    font-weight: 600;
-    color: #333;
-    margin-top: 3px;
+.ocean-btn:hover { background: #2ab8a0; border-color: #2ab8a0; color: #ffffff; }
+
+/* splash */
+#splash { align-items: center; justify-content: center; text-align: center; padding: 40px 24px; }
+.splash-wordmark {
+    font-family: 'Cormorant SC', serif;
+    font-size: 96px;
+    font-weight: 400;
+    color: #ffffff;
+    letter-spacing: 0px;
     margin-bottom: 2px;
+    line-height: 1;
 }
-.footer h2:first-child {
-    margin-top: 0;
+.splash-eyebrow {
+    font-family: 'Cormorant SC', serif;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 8px;
+    color: #4dd8c0;
+    margin-bottom: 72px;
+    text-transform: none;
 }
-.footer .ref {
-    margin-bottom: 3px;
-    padding-left: 14px;
-    text-indent: -14px;
+.splash-stat {
+    font-family: 'Cormorant', serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: #ffffff;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    white-space: nowrap;
+    margin-bottom: 12px;
 }
-.footer .ref:last-child {
-    margin-bottom: 0;
+.splash-stat .highlight { color: #c8f03c; }
+.splash-sub {
+    font-family: 'Cormorant', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #e5e9ea;
+    letter-spacing: 0px;
+    white-space: nowrap;
+    margin-bottom: 6px;
 }
-.footer a {
-    color: #0d3b66;
-    text-decoration: none;
+.splash-question {
+    font-family: 'Cormorant', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: #e0e0e0;
+    letter-spacing: 0px;
+    margin-bottom: 64px;
 }
-.footer a:hover {
-    text-decoration: underline;
-}
+.splash-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sp { position: absolute; border-radius: 50%; background: #c8f03c; animation: fall linear infinite; top: -6px; }
+@keyframes fall { 0% { transform: translateY(0); opacity: 0; } 5% { opacity: 0.7; } 95% { opacity: 0.3; } 100% { transform: translateY(101vh); opacity: 0; } }
+
+/* about */
+#about { padding: 0; }
+.about-inner { flex: 1; overflow-y: auto; padding: 48px 40px 32px; max-width: 720px; width: 100%; margin: 0 auto; }
+.about-inner::-webkit-scrollbar { width: 4px; }
+.about-inner::-webkit-scrollbar-thumb { background: rgba(77,216,192,0.3); border-radius: 2px; }
+.about-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: #4dd8c0; margin-bottom: 14px; }
+.about-title { font-size: 30px; font-weight: 700; color: #f0ede8; margin-bottom: 24px; letter-spacing: -0.3px; }
+.about-body { font-size: 15px; line-height: 1.7; color: rgba(240,237,232,0.75); margin-bottom: 16px; }
+.about-divider { border: none; border-top: 1px solid rgba(77,216,192,0.15); margin: 28px 0; }
+.about-section-title { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #4dd8c0; margin-bottom: 12px; }
+.about-source { font-size: 13px; line-height: 1.6; color: rgba(240,237,232,0.6); margin-bottom: 8px; }
+.about-source strong { color: rgba(240,237,232,0.85); font-weight: 500; }
+.about-ref { font-size: 13px; line-height: 1.6; color: rgba(240,237,232,0.55); margin-bottom: 6px; padding-left: 18px; text-indent: -18px; }
+.about-ref a { color: #4dd8c0; text-decoration: none; }
+.about-ref a:hover { text-decoration: underline; }
+.about-footer { flex-shrink: 0; padding: 20px 40px; border-top: 1px solid rgba(77,216,192,0.12); display: flex; justify-content: center; }
+
+/* onboarding */
+#onboarding { align-items: center; justify-content: center; padding: 40px 24px; }
+.onboard-inner { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
+.onboard-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: #4dd8c0; margin-bottom: 10px; text-align: center; }
+.onboard-title { font-size: 28px; font-weight: 700; color: #f0ede8; margin-bottom: 10px; text-align: center; letter-spacing: -0.3px; }
+.onboard-sub { font-size: 14px; color: rgba(240,237,232,0.55); text-align: center; margin-bottom: 28px; line-height: 1.5; }
+.ctrl-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.ctrl-row { display: flex; gap: 14px; align-items: flex-start; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 10px; border-left: 2px solid #2ab8a0; }
+.ctrl-name { font-size: 12px; font-weight: 600; color: #4dd8c0; white-space: nowrap; min-width: 100px; padding-top: 1px; letter-spacing: 0.3px; }
+.ctrl-desc { font-size: 13px; color: rgba(240,237,232,0.65); line-height: 1.5; }
 </style>
 </head>
 <body>
 
+<!-- ================================================================
+     SPLASH
+     ================================================================ -->
+<div id="splash" class="overlay">
+    <div class="splash-particles" id="splashParticles"></div>
+    <div class="splash-wordmark">FlowTracks</div>
+    <div class="splash-eyebrow">Ocean Pollution Flow Tracker</div>
+    <div class="splash-stat">Every minute, <span class="highlight">one garbage truck of plastic</span> enters our oceans.</div>
+    <div class="splash-sub">Carried by currents, turbulence, and time, plastic can travel far beyond where it first enters the water.</div>
+    <div class="splash-question">How far does yours flow?</div>
+    <button class="ocean-btn" onclick="showAbout()">Start Exploring</button>
+</div>
+
+<!-- ================================================================
+     ABOUT
+     ================================================================ -->
+<div id="about" class="overlay" style="display:none">
+    <div class="about-inner">
+        <div class="about-eyebrow">FlowTracks</div>
+        <div class="about-title">Where does my trash go?</div>
+        <p class="about-body">Plastic is one of the most widespread environmental pollutants on Earth. Its production has grown so rapidly that disposal and recycling systems cannot keep up. Each year, an estimated 5 to 13 million tons of plastic enter the ocean<sup>1</sup>, yet only about 300,000 tons can currently be accounted for in observations<sup>2</sup>. A major reason for this discrepancy is the difficulty of measuring and tracking plastic debris in the marine environment<sup>3</sup>.</p>
+        <p class="about-body">While large-scale ocean circulation (spanning hundreds of kilometers) largely determines where plastic accumulates, smaller-scale turbulent motions (on the order of kilometers or less) control how widely the particles disperse. Predicting this spreading remains a major scientific challenge and an active area of research.</p>
+        <p class="about-body">This simulation lets you release a cloud of virtual plastic particles and watch how ocean dynamics shape their movement. By adjusting turbulence and other parameters, you can explore how small-scale ocean dynamics influence the particles' large-scale distribution and ultimate fate.</p>
+        <hr class="about-divider">
+        <div class="about-section-title">Data Sources</div>
+        <p class="about-source"><strong>Ocean surface currents:</strong> OSCAR (Ocean Surface Current Analyses Real-time). Produced by Earth &amp; Space Research (ESR) from satellite sea surface height, wind, and temperature data. Distributed by NASA PO.DAAC (DOI: <a href="https://doi.org/10.5067/OSCAR-25F20">10.5067/OSCAR-25F20</a>).</p>
+        <p class="about-source"><strong>Land shaded relief:</strong> Esri World Shaded Relief, derived from SRTM (Shuttle Radar Topography Mission) elevation data. Sources: Esri, HERE, Garmin, USGS, and the GIS User Community.</p>
+        <hr class="about-divider">
+        <div class="about-section-title">References</div>
+        <p class="about-ref"><sup>1</sup> Jambeck, J. R., Geyer, R., Wilcox, C., et al. (2015). Plastic waste inputs from land into the ocean. <i>Science</i>, 347(6223), 768-771. <a href="https://doi.org/10.1126/science.1260352">doi:10.1126/science.1260352</a></p>
+        <p class="about-ref"><sup>2</sup> van Sebille, E., Wilcox, C., Lebreton, L., et al. (2015). A global inventory of small floating plastic debris. <i>Environmental Research Letters</i>, 10(12), 124006. <a href="https://doi.org/10.1088/1748-9326/10/12/124006">doi:10.1088/1748-9326/10/12/124006</a></p>
+        <p class="about-ref"><sup>3</sup> DiBenedetto, M. H. (2025). The fluid mechanics of ocean microplastics. <i>Annual Review of Fluid Mechanics</i>, ahead of print. <a href="https://doi.org/10.1146/annurev-fluid-120423-012604">doi:10.1146/annurev-fluid-120423-012604</a></p>
+    </div>
+    <div class="about-footer">
+        <button class="ocean-btn" onclick="showOnboarding()">Before You Begin</button>
+    </div>
+</div>
+
+<!-- ================================================================
+     BEFORE YOU BEGIN
+     ================================================================ -->
+<div id="onboarding" class="overlay" style="display:none">
+    <div class="onboard-inner">
+        <div class="onboard-eyebrow">Before you begin</div>
+        <div class="onboard-title">How to use FlowTracks</div>
+        <div class="onboard-sub">Click anywhere on the ocean to release a cloud of particles. Each one represents a piece of plastic. Use the controls to change how the simulation behaves.</div>
+        <div class="ctrl-list">
+            <div class="ctrl-row"><div class="ctrl-name">Particles</div><div class="ctrl-desc">How many plastic pieces to simulate at once. More particles gives a more accurate picture of dispersal.</div></div>
+            <div class="ctrl-row"><div class="ctrl-name">Speed</div><div class="ctrl-desc">How fast time moves in the simulation. Increase it to watch years of ocean drift unfold in seconds.</div></div>
+            <div class="ctrl-row"><div class="ctrl-name">Diffusion</div><div class="ctrl-desc">How much small-scale turbulence scatters particles off the main current. Higher values produce a wider, messier spread.</div></div>
+            <div class="ctrl-row"><div class="ctrl-name">Fade opacity</div><div class="ctrl-desc">How long particle trails linger on screen. Near 1.0 preserves the full history; lower values show only recent movement.</div></div>
+            <div class="ctrl-row"><div class="ctrl-name">Drop rate</div><div class="ctrl-desc">How often new particles are added at the source, simulating ongoing pollution input over time.</div></div>
+        </div>
+        <button class="ocean-btn" onclick="enterSim()">Start Tracking</button>
+    </div>
+</div>
+
+<!-- ================================================================
+     MAIN SIMULATION
+     ================================================================ -->
 <div class="page">
 
-    <!-- HEADER -->
-    <div class="header">
-        <h1>Where does my trash go?</h1>
-        <p>Plastic is one of the most widespread environmental pollutants on Earth. Its production has grown so rapidly that disposal and recycling systems cannot keep up. Each year, an estimated 5 to 13 million tons of plastic enter the ocean<sup>1</sup>, yet only about 300,000 tons can currently be accounted for in observations<sup>2</sup>. A major reason for this discrepancy is the difficulty of measuring and tracking plastic debris in the marine environment<sup>3</sup>.</p>
-        <p>While large-scale ocean circulation (spanning hundreds of kilometers) largely determines where plastic accumulates, smaller-scale turbulent motions (on the order of kilometers or less) control how widely the particles disperse. Predicting this spreading remains a major scientific challenge and an active area of research.</p>
-        <p>The visualization below allows you to release a cloud of virtual plastic particles and explore how they evolve over time. By adjusting the level of turbulence affecting their motion, you can see how small-scale ocean dynamics influence the particles' large-scale distribution and ultimate fate.</p>
+    <div class="sim-navbar">
+        <div class="sim-brand">
+            <span class="sim-logo">FlowTracks</span>
+            <span class="sim-tagline">Ocean pollution dispersal</span>
+        </div>
+        <div class="sim-nav-links">
+            <span class="sim-nav-link active">Simulate</span>
+            <span class="sim-nav-link" onclick="showOverlay('about')">About</span>
+            <span class="sim-nav-link" onclick="showOverlay('onboarding')">How to use</span>
+            <span class="sim-nav-link danger" onclick="resetSim()">Reset</span>
+        </div>
     </div>
 
-    <!-- MAP -->
-    <div class="map-wrapper">
-        <div class="map-container">
+    <div class="sim-body">
+
+        <div class="sim-sidebar">
+            <div class="sidebar-head">
+                <div class="sidebar-head-label">Controls</div>
+            </div>
+            <div class="sidebar-controls">
+
+                <div class="ctrl-item">
+                    <div class="ctrl-header">
+                        <span class="ctrl-label">Particles</span>
+                        <span class="ctrl-value" id="val-particles">65,000</span>
+                    </div>
+                    <input type="range" class="ctrl-slider" id="sl-particles"
+                           min="1000" max="100000" step="1000" value="65000"
+                           oninput="setParticles(this.value)">
+                </div>
+
+                <div class="ctrl-item">
+                    <div class="ctrl-header">
+                        <span class="ctrl-label">Speed</span>
+                        <span class="ctrl-value" id="val-speed">3</span>
+                    </div>
+                    <input type="range" class="ctrl-slider" id="sl-speed"
+                           min="0.1" max="10" step="0.1" value="3"
+                           oninput="setSpeed(this.value)">
+                </div>
+
+                <div class="ctrl-item">
+                    <div class="ctrl-header">
+                        <span class="ctrl-label">Diffusion</span>
+                        <span class="ctrl-value" id="val-diffusion">0.001</span>
+                    </div>
+                    <input type="range" class="ctrl-slider" id="sl-diffusion"
+                           min="0" max="0.01" step="0.0001" value="0.001"
+                           oninput="setDiffusion(this.value)">
+                </div>
+
+                <div class="ctrl-item">
+                    <div class="ctrl-header">
+                        <span class="ctrl-label">Fade opacity</span>
+                        <span class="ctrl-value" id="val-fade">0.999</span>
+                    </div>
+                    <input type="range" class="ctrl-slider" id="sl-fade"
+                           min="0.9" max="1.0" step="0.001" value="0.999"
+                           oninput="setFade(this.value)">
+                </div>
+
+                <div class="ctrl-item">
+                    <div class="ctrl-header">
+                        <span class="ctrl-label">Drop rate</span>
+                        <span class="ctrl-value" id="val-droprate">0.010</span>
+                    </div>
+                    <input type="range" class="ctrl-slider" id="sl-droprate"
+                           min="0.001" max="0.1" step="0.001" value="0.01"
+                           oninput="setDropRate(this.value)">
+                </div>
+
+                <div class="ctrl-item">
+                    <div class="ctrl-toggle-row">
+                        <span class="ctrl-label">Retina display</span>
+                        <div class="ctrl-toggle" id="toggle-retina" onclick="toggleRetina()">
+                            <div class="ctrl-toggle-knob"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="sidebar-legend">
+                <div class="legend-lbl">Particle density</div>
+                <div class="legend-bar">
+                    <div style="flex:1;background:#1a4a1a"></div>
+                    <div style="flex:1;background:#2d6e1a"></div>
+                    <div style="flex:1;background:#5a9910"></div>
+                    <div style="flex:1;background:#8aaa22"></div>
+                    <div style="flex:1;background:#b0d028"></div>
+                    <div style="flex:1;background:#c8f03c"></div>
+                </div>
+                <div class="legend-ends"><span>sparse</span><span>dense</span></div>
+            </div>
+        </div>
+
+        <div class="sim-map">
             <canvas id="coastline"></canvas>
             <canvas id="canvas"></canvas>
             <canvas id="land"></canvas>
             <canvas id="tracers"></canvas>
         </div>
+
     </div>
 
-
-    <!-- FOOTER -->
-    <div class="footer">
-        <h2>Data Sources</h2>
-        <div><strong>Ocean surface currents:</strong> OSCAR (Ocean Surface Current Analyses Real-time). Produced by Earth &amp; Space Research (ESR) from satellite sea surface height, wind, and temperature data. Distributed by NASA PO.DAAC (DOI: <a href="https://doi.org/10.5067/OSCAR-25F20">10.5067/OSCAR-25F20</a>).</div>
-        <div><strong>Land shaded relief:</strong> Esri World Shaded Relief, derived from SRTM (Shuttle Radar Topography Mission) elevation data. Sources: Esri, HERE, Garmin, USGS, and the GIS User Community.</div>
-
-        <h2>References</h2>
-        <div class="ref"><sup>1</sup> Jambeck, J. R., Geyer, R., Wilcox, C., et al. (2015). Plastic waste inputs from land into the ocean. <i>Science</i>, 347(6223), 768&ndash;771. <a href="https://doi.org/10.1126/science.1260352">doi:10.1126/science.1260352</a></div>
-        <div class="ref"><sup>2</sup> van Sebille, E., Wilcox, C., Lebreton, L., et al. (2015). A global inventory of small floating plastic debris. <i>Environmental Research Letters</i>, 10(12), 124006. <a href="https://doi.org/10.1088/1748-9326/10/12/124006">doi:10.1088/1748-9326/10/12/124006</a></div>
-        <div class="ref"><sup>3</sup> DiBenedetto, M. H. (2025). The fluid mechanics of ocean microplastics. <i>Annual Review of Fluid Mechanics</i>, ahead of print. <a href="https://doi.org/10.1146/annurev-fluid-120423-012604">doi:10.1146/annurev-fluid-120423-012604</a></div>
+    <div class="sim-chart">
+        <div class="sim-chart-title">Particle spread over time</div>
+        <div class="chart-host" id="chartHost"></div>
     </div>
 
 </div>
@@ -148,5 +451,146 @@ html, body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 <script src="wind-gl.js"></script>
 <script src="index.js"></script>
+<script>
+// ---- Falling particles on splash ----
+(function () {
+    var container = document.getElementById('splashParticles');
+    for (var i = 0; i < 38; i++) {
+        var el = document.createElement('div');
+        el.className = 'sp';
+        var size = 2 + Math.random() * 3;
+        el.style.width  = size + 'px';
+        el.style.height = size + 'px';
+        el.style.left   = (Math.random() * 100) + '%';
+        el.style.animationDuration = (6 + Math.random() * 10) + 's';
+        el.style.animationDelay    = (Math.random() * 12) + 's';
+        el.style.opacity = 0;
+        container.appendChild(el);
+    }
+})();
+
+// ---- Move chart canvas into panel ----
+// chartCanvas is a global var declared in index.js
+(function () {
+    var host = document.getElementById('chartHost');
+    if (typeof chartCanvas !== 'undefined' && host) {
+        host.appendChild(chartCanvas);
+        chartCanvas.width  = host.clientWidth  || 480;
+        chartCanvas.height = host.clientHeight || 90;
+        if (typeof chartCtx !== 'undefined') {
+            chartCtx = chartCanvas.getContext('2d');
+        }
+    }
+})();
+
+// ---- Overlay transitions ----
+function fadeOut(id) {
+    var el = document.getElementById(id);
+    el.classList.add('hidden');
+    setTimeout(function () { el.style.display = 'none'; }, 600);
+}
+function fadeIn(id) {
+    var el = document.getElementById(id);
+    el.style.display = 'flex';
+    el.style.opacity = 0;
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+            el.style.transition = 'opacity 0.5s ease';
+            el.style.opacity = 1;
+        });
+    });
+}
+function showAbout()      { fadeIn('about');      fadeOut('splash'); }
+function showOnboarding() { fadeIn('onboarding'); fadeOut('about'); }
+
+// Show an overlay from within the sim (About / How to use nav links)
+function showOverlay(id) {
+    var page = document.querySelector('.page');
+    fadeIn(id);
+    // Add a close button dynamically if not already present
+    var el = document.getElementById(id);
+    if (!el.querySelector('.overlay-close')) {
+        var btn = document.createElement('button');
+        btn.className = 'ocean-btn overlay-close';
+        btn.textContent = 'Back to simulation';
+        btn.style.position = 'absolute';
+        btn.style.top = '18px';
+        btn.style.right = '24px';
+        btn.style.fontSize = '10px';
+        btn.style.padding = '8px 20px';
+        btn.onclick = function () {
+            fadeOut(id);
+            setTimeout(function () {
+                el.querySelector('.overlay-close').remove();
+            }, 650);
+        };
+        el.appendChild(btn);
+    }
+}
+
+function enterSim() {
+    var page = document.querySelector('.page');
+    page.style.visibility = 'visible';
+    fadeOut('onboarding');
+    // Resize chart canvas now that panel is visible
+    setTimeout(function () {
+        var host = document.getElementById('chartHost');
+        if (typeof chartCanvas !== 'undefined' && host && host.clientWidth > 0) {
+            chartCanvas.width  = host.clientWidth;
+            chartCanvas.height = host.clientHeight;
+            if (typeof chartCtx !== 'undefined') chartCtx = chartCanvas.getContext('2d');
+        }
+    }, 650);
+}
+
+// ---- Control handlers ----
+function setParticles(v) {
+    var n = parseInt(v);
+    document.getElementById('val-particles').textContent = n.toLocaleString();
+    if (typeof wind !== 'undefined') wind.numParticles = n;
+    if (typeof meta !== 'undefined') meta.numParticles = n;
+}
+function setSpeed(v) {
+    var n = parseFloat(v);
+    document.getElementById('val-speed').textContent = parseFloat(n.toFixed(1));
+    if (typeof wind !== 'undefined') wind.speedFactor = n;
+    if (typeof meta !== 'undefined') meta.speedFactor = n;
+}
+function setDiffusion(v) {
+    var n = parseFloat(v);
+    document.getElementById('val-diffusion').textContent = n.toFixed(4);
+    if (typeof wind !== 'undefined') wind.diffusion = n;
+    if (typeof meta !== 'undefined') meta.diffusion = n;
+}
+function setFade(v) {
+    var n = parseFloat(v);
+    document.getElementById('val-fade').textContent = n.toFixed(3);
+    if (typeof wind !== 'undefined') wind.fadeOpacity = n;
+    if (typeof meta !== 'undefined') meta.fadeOpacity = n;
+}
+function setDropRate(v) {
+    var n = parseFloat(v);
+    document.getElementById('val-droprate').textContent = n.toFixed(3);
+    if (typeof wind !== 'undefined') wind.dropRate = n;
+    if (typeof meta !== 'undefined') meta.dropRate = n;
+}
+function toggleRetina() {
+    var tog = document.getElementById('toggle-retina');
+    tog.classList.toggle('off');
+    var on = !tog.classList.contains('off');
+    if (typeof meta !== 'undefined') {
+        meta['retina resolution'] = on;
+        if (typeof resizeTracers === 'function') resizeTracers();
+        if (typeof drawLandAndBorders === 'function') drawLandAndBorders();
+    }
+}
+
+// ---- Reset ----
+function resetSim() {
+    if (typeof tracerClouds !== 'undefined') tracerClouds.length = 0;
+    if (typeof chartClouds  !== 'undefined') chartClouds.length  = 0;
+    if (typeof heatBins     !== 'undefined') heatBins.fill(0);
+}
+</script>
 </body>
 </html>
