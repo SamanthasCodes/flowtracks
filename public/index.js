@@ -339,24 +339,28 @@ function updateRetina() {
     drawLandAndBorders();
 }
 
-getJSON('https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_coastline.geojson', function (data) {
-    window._coastlineData = data;
-    const canvas = document.getElementById('coastline');
-    canvas.width = canvas.clientWidth * pxRatio;
-    canvas.height = canvas.clientHeight * pxRatio;
+function drawCoastline() {
+    if (!window._coastlineData) return;
+    var canvas = document.getElementById('coastline');
+    if (!canvas) return;
+    var ratio = (typeof meta !== 'undefined' && meta['retina resolution']) ? pxRatio : 1;
+    canvas.width = canvas.clientWidth * ratio;
+    canvas.height = canvas.clientHeight * ratio;
+    if (canvas.width === 0 || canvas.height === 0) return;
 
-    const ctx = canvas.getContext('2d');
-    ctx.lineWidth = pxRatio;
+    var ctx = canvas.getContext('2d');
+    ctx.lineWidth = ratio;
     ctx.lineJoin = ctx.lineCap = 'round';
     ctx.strokeStyle = 'white';
     ctx.beginPath();
 
-    for (let i = 0; i < data.features.length; i++) {
-        const line = data.features[i].geometry.coordinates;
-        for (let j = 0; j < line.length; j++) {
-            const lon = ((line[j][0] + 360) % 360);
+    var data = window._coastlineData;
+    for (var i = 0; i < data.features.length; i++) {
+        var line = data.features[i].geometry.coordinates;
+        for (var j = 0; j < line.length; j++) {
+            var lon = ((line[j][0] + 360) % 360);
             if (j > 0) {
-                const prevLon = ((line[j-1][0] + 360) % 360);
+                var prevLon = ((line[j - 1][0] + 360) % 360);
                 if (Math.abs(lon - prevLon) > 180) {
                     ctx.stroke();
                     ctx.beginPath();
@@ -372,6 +376,11 @@ getJSON('https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_coastl
         }
     }
     ctx.stroke();
+}
+
+getJSON('https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_coastline.geojson', function (data) {
+    window._coastlineData = data;
+    drawCoastline();
 });
 
 getJSON('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_boundary_lines_land.geojson', function (data) {
@@ -387,6 +396,7 @@ function updateWind(dateStr) {
             wind.setWind(windData);
             buildWindLookup(windData);
             drawLandAndBorders();
+            if (!choroplethData) initChoropleth();
         };
     });
 }
@@ -524,6 +534,267 @@ function updateTracers() {
             cloud.spreadHistory.push(SimCore.spreadMetric(oceanParts));
         }
     }
+}
+
+// ================================================================
+// CHOROPLETH (D3 + topojson) — plastic marine debris by country
+// ================================================================
+
+var choroplethSvg = (typeof d3 !== 'undefined') ? d3.select('#choropleth') : null;
+var choroplethData = null;
+var choroplethResizeTimer = null;
+
+var MD_COL = 'Plastic marine debris in 2025 [tonnes/year]';
+var MM_COL = 'Mismanaged plastic waste in 2025\n [tonnes]7';
+var POP_COL = 'Coastal population2';
+
+// Tooltip DOM (these elements live above the <script> tags in index.html).
+var tooltipEl = document.getElementById('tooltip');
+var ttName = document.getElementById('ttName');
+var ttPop = document.getElementById('ttPop');
+var ttMD = document.getElementById('ttMD');
+
+// Returns a Promise so tests can await initialization.
+function initChoropleth() {
+    if (typeof d3 === 'undefined' || typeof topojson === 'undefined') {
+        return Promise.reject(new Error('d3 / topojson not loaded'));
+    }
+    return Promise.all([
+        d3.csv('jambeck_2014.csv'),
+        d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    ]).then(function (results) {
+        var csvData = results[0];
+        var topo = results[1];
+
+        var lookup = {};
+        csvData.forEach(function (d) {
+            var csvName = d.Country || '';
+            var neName = SimCore.NAME_MAP[csvName] || csvName;
+            if (!neName) return;
+            // Auto-strip trailing '8' if not in nameMap and ends with '8'
+            if (!SimCore.NAME_MAP[csvName] &&
+                neName.length > 1 &&
+                neName[neName.length - 1] === '8') {
+                neName = neName.slice(0, -1);
+            }
+            lookup[neName] = {
+                csvName: csvName,
+                coastalPop: SimCore.parseNum(d[POP_COL]),
+                mm2025: SimCore.parseNum(d[MM_COL]),
+                md2025: SimCore.parseNum(d[MD_COL])
+            };
+        });
+
+        var countries = topojson.feature(topo, topo.objects.countries);
+        choroplethData = { lookup: lookup, countries: countries };
+
+        renderChoropleth();
+        setupTooltip();
+        setupLegend();
+    }).catch(function (err) {
+        console.error('Choropleth load failed:', err);
+    });
+}
+
+function renderChoropleth() {
+    if (!choroplethData || !choroplethSvg) return;
+    var container = document.querySelector('.sim-map');
+    if (!container) return;
+    var w = container.clientWidth;
+    var h = container.clientHeight;
+    if (w === 0 || h === 0) return;
+
+    choroplethSvg
+        .attr('viewBox', '0 0 ' + w + ' ' + h)
+        .attr('preserveAspectRatio', 'none')
+        .attr('width', w)
+        .attr('height', h);
+
+    // juliosbranch's projection — relies on `.sim-map` having 2:1 aspect
+    // (enforced via `aspect-ratio: 2 / 1` in the inline <style> block).
+    // d3.geoEquirectangular handles antimeridian preclipping, which our
+    // earlier custom transform did not — that's why prime-meridian-crossing
+    // countries (France, UK, etc.) used to render as wide stripes.
+    var projection = d3.geoEquirectangular()
+        .rotate([180, 0])
+        .scale(w / (2 * Math.PI))
+        .translate([w / 2, h / 2]);
+
+    var geoPath = d3.geoPath().projection(projection);
+
+    var g = choroplethSvg.selectAll('g.choropleth-layer')
+        .data([null])
+        .join('g')
+        .attr('class', 'choropleth-layer');
+
+    var paths = g.selectAll('path.country')
+        .data(choroplethData.countries.features);
+    paths.exit().remove();
+    var pathsEnter = paths.enter().append('path').attr('class', 'country');
+    var allPaths = pathsEnter.merge(paths);
+
+    allPaths
+        .attr('d', geoPath)
+        .attr('fill', function (d) {
+            var data = choroplethData.lookup[d.properties.name];
+            if (!data) return '#2a2a2a';
+            return SimCore.logBinColor(
+                data.md2025 || 0,
+                SimCore.BIN_THRESHOLDS,
+                SimCore.BIN_COLORS
+            );
+        })
+        .attr('stroke', 'rgba(60, 60, 60, 0.35)')
+        .attr('stroke-width', 0.5)
+        .attr('data-country', function (d) { return d.properties.name; });
+}
+
+function moveTooltip(event) {
+    if (!tooltipEl) return;
+    var x = event.clientX + 14;
+    var y = event.clientY - 12;
+    var tw = tooltipEl.offsetWidth || 200;
+    var th = tooltipEl.offsetHeight || 80;
+    if (x + tw > window.innerWidth - 10) x = event.clientX - tw - 14;
+    if (y + th > window.innerHeight - 10) y = event.clientY - th - 10;
+    if (y < 10) y = 10;
+    tooltipEl.style.left = x + 'px';
+    tooltipEl.style.top = y + 'px';
+}
+
+function setupTooltip() {
+    if (!choroplethSvg) return;
+    var g = choroplethSvg.select('g.choropleth-layer');
+    g.selectAll('.country')
+        .on('mouseover', function (event, d) {
+            var data = choroplethData.lookup[d.properties.name];
+            if (!data || !data.md2025) {
+                if (tooltipEl) tooltipEl.classList.remove('visible');
+                return;
+            }
+            if (ttName) ttName.textContent = d.properties.name;
+            if (ttPop)  ttPop.textContent  = SimCore.formatFull(data.coastalPop);
+            if (ttMD)   ttMD.textContent   = SimCore.formatFull(data.md2025) + ' t';
+            if (tooltipEl) tooltipEl.classList.add('visible');
+            moveTooltip(event);
+        })
+        .on('mousemove', function (event) {
+            if (tooltipEl && tooltipEl.classList.contains('visible')) {
+                moveTooltip(event);
+            }
+        })
+        .on('mouseout', function () {
+            if (tooltipEl) tooltipEl.classList.remove('visible');
+        });
+}
+
+function setupLegend() {
+    var bar = document.getElementById('legendBar');
+    if (!bar) return;
+
+    var binColors = SimCore.BIN_COLORS;
+    var binLabels = ['0', '1', '10', '100', '1K', '10K', '100K', '1M', '5M'];
+    var numBins = binColors.length;
+
+    // Build the gradient as inline linear-gradient (works without canvas).
+    var stops = binColors.map(function (c, i) {
+        var lo = (i / numBins * 100).toFixed(2);
+        var hi = ((i + 1) / numBins * 100).toFixed(2);
+        return c + ' ' + lo + '%, ' + c + ' ' + hi + '%';
+    }).join(', ');
+    bar.style.background = 'linear-gradient(to right, ' + stops + ')';
+
+    var labelsContainer = document.getElementById('legendLabels');
+    if (!labelsContainer) return;
+    labelsContainer.innerHTML = '';
+    for (var i = 0; i < binLabels.length; i++) {
+        var el = document.createElement('span');
+        el.textContent = binLabels[i];
+        el.style.position = 'absolute';
+        el.style.left = (i / (binLabels.length - 1) * 100) + '%';
+        el.style.transform = 'translateX(-50%)';
+        el.style.fontSize = '8px';
+        el.style.color = '#aaa';
+        el.style.whiteSpace = 'nowrap';
+        labelsContainer.appendChild(el);
+    }
+}
+
+function resizeChoropleth() {
+    if (choroplethData) renderChoropleth();
+}
+
+// Explicitly size .sim-map to the largest 2:1 box that fits its wrapper's
+// content area. CSS aspect-ratio is unreliable here: when the available
+// height is the binding constraint, browsers clamp `.sim-map`'s height via
+// max-height but don't shrink its width, leaving a non-2:1 box.
+function fitSimMap() {
+    var simMap = document.querySelector('.sim-map');
+    if (!simMap) return;
+    var wrapper = simMap.parentElement;
+    if (!wrapper) return;
+
+    var cs = (typeof getComputedStyle === 'function') ? getComputedStyle(wrapper) : null;
+    var pl = cs ? (parseFloat(cs.paddingLeft)   || 0) : 0;
+    var pr = cs ? (parseFloat(cs.paddingRight)  || 0) : 0;
+    var pt = cs ? (parseFloat(cs.paddingTop)    || 0) : 0;
+    var pb = cs ? (parseFloat(cs.paddingBottom) || 0) : 0;
+
+    // wrapper.clientWidth/Height already exclude border + scrollbar; they
+    // INCLUDE padding, so subtract it to get the available content box.
+    var availW = wrapper.clientWidth  - pl - pr;
+    var availH = wrapper.clientHeight - pt - pb;
+    if (availW <= 0 || availH <= 0) return;
+
+    var W, H;
+    if (availW <= availH * 2) {
+        // Width-bound — use full width, derive height
+        W = availW; H = availW / 2;
+    } else {
+        // Height-bound — use full height, derive width
+        W = availH * 2; H = availH;
+    }
+    simMap.style.width  = W + 'px';
+    simMap.style.height = H + 'px';
+}
+
+// Unified layout-recompute. Every layer needs its internal pixel size
+// updated when .sim-map's CSS box changes (e.g. window resize, devtools
+// open/close, or the initial layout settling).
+function recomputeLayout() {
+    fitSimMap();                  // explicit 2:1 sizing of .sim-map first
+    if (typeof updateRetina === 'function') {
+        updateRetina();           // resizes #canvas, calls drawLandAndBorders
+    }
+    if (typeof resizeTracers === 'function') {
+        resizeTracers();
+    }
+    drawCoastline();              // re-size + re-stroke
+    resizeChoropleth();           // re-render at new container dims
+}
+
+if (typeof window !== 'undefined') {
+    if (window.ResizeObserver) {
+        // Observe the WRAPPER, not .sim-map — fitSimMap mutates .sim-map's
+        // size, which would otherwise loop the observer.
+        var _wrapper = document.querySelector('.sim-map-wrapper');
+        if (_wrapper) {
+            new ResizeObserver(function () {
+                if (choroplethResizeTimer) clearTimeout(choroplethResizeTimer);
+                choroplethResizeTimer = setTimeout(recomputeLayout, 100);
+            }).observe(_wrapper);
+        }
+    }
+    window.addEventListener('resize', function () {
+        if (choroplethResizeTimer) clearTimeout(choroplethResizeTimer);
+        choroplethResizeTimer = setTimeout(recomputeLayout, 100);
+    });
+    // Fire once after the initial layout settles. The initial canvas sizes
+    // set during script eval read clientWidth/Height BEFORE fitSimMap has
+    // had a chance to assign explicit pixel dimensions.
+    requestAnimationFrame(function () {
+        requestAnimationFrame(recomputeLayout);
+    });
 }
 
 // ================================================================

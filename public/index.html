@@ -253,7 +253,26 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 .sim-footer-reset:hover { background: #c8f03c; border-color: #c8f03c; color: #031a14; }
 
 /* ---- Map ---- */
-.sim-map { flex: 1; position: relative; background: #061a2e; overflow: hidden; margin: 8px 8px 8px 8px; border-radius: 10px; }
+/* Wrapper fills available space inside the flex row; .sim-map gets explicit
+   pixel dimensions assigned by fitSimMap() in index.js. CSS aspect-ratio is
+   not reliable here — it doesn't shrink width when max-height clamps. */
+.sim-map-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 8px;
+}
+.sim-map {
+    /* width / height set by fitSimMap() */
+    position: relative;
+    background: #061a2e;
+    overflow: hidden;
+    border-radius: 10px;
+}
 .sim-map canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 #land    { pointer-events: none; }
 #tracers { pointer-events: none; z-index: 10; }
@@ -404,6 +423,13 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     color: #4dd8c0;
 }
 
+/* In-sim header: compact wordmark to give the map more vertical room.
+   Splash/about overlays live outside .page, so their larger marquee
+   wordmarks are unaffected. */
+.page .about-header-box { padding: 10px 18px 12px; margin-top: 8px; }
+.page .about-wordmark   { font-size: 48px; }
+.page .about-eyebrow    { font-size: 14px; letter-spacing: 5px; }
+
 /* section headings */
 .about-heading {
     font-family: 'Cormorant SC', serif;
@@ -483,6 +509,102 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     display: flex;
     justify-content: center;
 }
+
+/* ================================================================
+   CHOROPLETH + TOOLTIP + FLOATING LEGEND (Phase 4)
+   ================================================================ */
+#choropleth {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 6;
+    pointer-events: none;
+    overflow: visible;
+}
+#choropleth path.country {
+    pointer-events: auto;
+    cursor: crosshair;
+    stroke: rgba(10, 10, 10, 0.35);
+    stroke-width: 0.5;
+    transition: stroke-width 0.1s;
+}
+#choropleth path.country:hover {
+    stroke: #fff;
+    stroke-width: 1.5;
+}
+
+#legend {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    z-index: 20;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 4px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-family: 'Cormorant SC', serif;
+    color: #ccc;
+}
+#legend .legend-title {
+    font-size: 9px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+#legend .legend-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+#legend .legend-bar {
+    width: 175px;
+    height: 10px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+#legend .legend-labels {
+    position: relative;
+    height: 14px;
+    width: 175px;
+}
+#legend .legend-unit {
+    color: #888;
+    font-size: 11px;
+}
+
+#tooltip {
+    position: fixed;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: rgba(0, 0, 0, 0.82);
+    color: #eee;
+    font-size: 11px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    z-index: 1000;
+    line-height: 1.5;
+    max-width: 240px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+#tooltip.visible { opacity: 1; }
+#tooltip .tt-name {
+    font-weight: 700;
+    font-size: 12px;
+    color: #fff;
+    margin-bottom: 2px;
+}
+#tooltip .tt-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+#tooltip .tt-label { color: #999; }
+#tooltip .tt-value { color: #eee; text-align: right; }
 </style>
 </head>
 <body>
@@ -645,11 +767,22 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             </div>
         </div>
 
-        <div class="sim-map">
-            <canvas id="coastline"></canvas>
-            <canvas id="canvas"></canvas>
-            <canvas id="land"></canvas>
-            <canvas id="tracers"></canvas>
+        <div class="sim-map-wrapper">
+            <div class="sim-map">
+                <canvas id="coastline"></canvas>
+                <canvas id="canvas"></canvas>
+                <canvas id="land"></canvas>
+                <svg id="choropleth"></svg>
+                <div id="legend">
+                    <div class="legend-title">Plastic marine debris</div>
+                    <div class="legend-bar-container">
+                        <div class="legend-bar" id="legendBar"></div>
+                    </div>
+                    <div class="legend-labels" id="legendLabels"></div>
+                    <div class="legend-unit">tonnes / year (log scale)</div>
+                </div>
+                <canvas id="tracers"></canvas>
+            </div>
         </div>
 
     </div>
@@ -663,6 +796,14 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 
 </div>
 
+<div id="tooltip">
+    <div class="tt-name" id="ttName"></div>
+    <div class="tt-row"><span class="tt-label">Coastal population</span><span class="tt-value" id="ttPop"></span></div>
+    <div class="tt-row"><span class="tt-label">Marine debris (2025)</span><span class="tt-value" id="ttMD"></span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 <script src="wind-gl.js"></script>
 <script src="sim_core.js"></script>
@@ -748,6 +889,9 @@ function enterSim() {
             chartCanvas.height = host.clientHeight;
             if (typeof chartCtx !== 'undefined') chartCtx = chartCanvas.getContext('2d');
         }
+        // Re-size all map layers now that .sim-map is actually visible and
+        // its CSS aspect-ratio has been resolved by the browser.
+        if (typeof recomputeLayout === 'function') recomputeLayout();
     }, 650);
 }
 
@@ -801,5 +945,6 @@ function resetSim() {
     if (typeof heatBins     !== 'undefined') heatBins.fill(0);
 }
 </script>
+
 </body>
 </html>

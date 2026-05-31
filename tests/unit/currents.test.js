@@ -105,6 +105,8 @@ function makeBrowserSandbox() {
         Image: class { constructor() { this.onload = null; } set src(_) {} },
         requestAnimationFrame: () => 0,
         cancelAnimationFrame: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
         devicePixelRatio: 1,
         Math, Date, JSON, console, Error, Promise,
         Uint8Array, Uint8ClampedArray, Float32Array, Int32Array,
