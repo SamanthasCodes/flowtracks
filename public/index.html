@@ -362,7 +362,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 .splash-stat .highlight { color: #c8f03c; }
 .splash-sub {
     font-family: 'Cormorant', serif;
-    font-size: 20px;
+    font-size: 25px;
     font-weight: 400;
     color: #e5e9ea;
     letter-spacing: 0px;
@@ -371,7 +371,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 }
 .splash-question {
     font-family: 'Cormorant', serif;
-    font-size: 20px;
+    font-size: 40px;
     font-weight: 500;
     color: #e0e0e0;
     letter-spacing: 0px;
@@ -614,8 +614,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     <div class="splash-wordmark">FlowTracks</div>
     <div class="splash-eyebrow">Ocean Pollution Flow Tracker</div>
     <div class="splash-stat">Every minute, <span class="highlight">one garbage truck of plastic</span> enters our oceans.</div>
-    <div class="splash-sub">Carried by currents, turbulence, and time, plastic can travel far beyond where it first enters the water.</div>
-    <div class="splash-question">How far does yours flow?</div>
+    <div class="splash-sub">Once in the oceans, large circulation patterns (hundreds of kilometers) transport plastic across</div>
+    <div class="splash-sub">long distances while smaller turbulent motions (hundreds of meters) redistribute particles through the surrounding water,</div>
+    <div class="splash-sub">shaping how widely plastic disperses. Together, these dynamics make it difficult to track plastic's fate.</div>
+    <div class="splash-question"><span style="color:#c8f03c">How far does your trash go?</span></div>
     <button class="ocean-btn" onclick="showAbout()">Start Exploring</button>
 </div>
 
@@ -630,15 +632,25 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             <div class="about-eyebrow">ocean pollution flow tracker</div>
         </div>
 
-        <div class="about-heading">About</div>
+        <!-- <div class="about-heading">Where does my trash go?</div> -->
 
-        <p class="about-body">Every minute, <span style="color:#c8f03c">one garbage truck of plastic </span>enters our oceans. This pollution can travel far and wide, from high mountain environments to the deep sea, impacting even the most remote locations. Tracking plastic pollution is essential for understanding where it accumulates, how widely the particles disperse, and how scientists and environmental groups can better target cleanup and prevention efforts.</p>
-        <p class="about-body">In the oceans, plastic swiftly flows into a restless system of currents, eddies, and turbulence. Smaller turbulent motions redistribute particles through the surrounding water, shaping how widely pollution disperses, while larger circulation patterns transport debris across long distances and influence where plastic accumulates. Together, these dynamics make it difficult to track plastic's path, model where it accumulates, and implement targeted cleanup interventions.</p>
-        <p class="about-body">FlowTracks is an interactive simulation that lets users explore how ocean motion can influence plastic pollution. By releasing virtual particles and adjusting turbulence, users can observe how changes in ocean mixing affect where pollution travels, how widely it spreads, and where it may accumulate. Rather than treating plastic pollution as a distant or invisible problem, FlowTracks invites users to experiment with the dynamics that make ocean plastic difficult to track, model, and manage.</p>
+        <!-- <p class="about-body"> -->
+            <!-- Plastic is one of the most widespread environmental pollutants on Earth.  -->
+            <!-- <span style="color:#c8f03c">Every minute, one garbage truck of plastic enters our oceans.</span>  -->
+            <!-- Plastic can travel far and wide, even to the deep sea, so tracking it is essential for understanding where it accumulates and improving cleanup and prevention efforts. -->
+        <!-- </p> -->
+        <!-- <p class="about-body">In the oceans, larger circulation patterns (hundreds of kilometers) transport debris across long distances while smaller turbulent motions (hundreds of meters) redistribute particles through the surrounding water, shaping how widely plastic disperses. Together, these dynamics make it difficult to track plastic's fate.</p>
+        <hr class="about-divider"> -->
+        <p class="about-body">FlowTracks simulates buoyant plastic fragments carried by ocean surface currents and the marine plastic debris introduced into the ocean in 2025. 
+            <!-- By releasing virtual particles and adjusting turbulence, you can observe how small and large motions in ocean affect where pollution travels. -->
+        </p>
 
-        <hr class="about-divider">
+        <br>
+        <p class="about-body">The choropleth colors each country by its projected annual plastic marine debris in 2025 (tonnes per year), so you can immediately see which nations contribute the most. The simulation lets you click any ocean region to release virtual particles that drift with real ocean currents, showing how plastic pollution can travel far from its source and spread unpredictably through turbulence.</p>
 
-        <div class="about-heading">How to Use</div>
+        <br>
+
+        <!-- <div class="about-heading">How to Use</div>
         <div class="about-section-sub">Click anywhere on the map to release particles into the ocean. Use the controls in the sidebar to shape how the simulation behaves.</div>
 
         <div class="ctrl-list">
@@ -648,22 +660,15 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             <div class="ctrl-row"><span class="ctrl-name">Trajectories</span><span class="ctrl-desc">controls particle trails; toggle on to trace past movement or off for a cleaner view of only current particle cloud positions.</span></div>
             <div class="ctrl-row"><span class="ctrl-name">Currents</span><span class="ctrl-desc">controls ocean current labels; toggle on to identify large-scale flows that may influence particle movement.</span></div>
             <div class="ctrl-row"><span class="ctrl-name">Retina Resolution</span><span class="ctrl-desc">controls canvas sharpness for high-resolution screens; toggle off to enhance performance if simulation runs slowly.</span></div>
-        </div>
+        </div> -->
 
-        <hr class="about-divider">
+        <!-- <hr class="about-divider"> -->
 
-        <!-- Verbatim content ported from juliosbranch's header section -->
-        <div class="about-heading">Where does my trash go?</div>
-
-        <p class="about-body">Plastic is one of the most widespread environmental pollutants on Earth.</p>
-
-        <p class="about-body">The visualization below is a very simple simulation of buoyant plastic debris carried by ocean surface currents. They do not sink, degrade, fragment, or beach.</p>
-
-        <p class="about-body">Each dot on the map represents a single piece of plastic&mdash;a bottle forgotten at the beach, a net a fisherman lost, a straw tossed overboard. To make the scale tangible, here is what one metric ton of common ocean debris looks like:</p>
+        <p class="about-body">Each dot on the map represents a single piece of plastic&mdash;a bottle forgotten at the beach, a net a fisherman lost, a straw tossed overboard. To make the scale tangible, here is what one ton of common ocean debris looks like:</p>
 
         <br>
 
-        <table style="width:100%; max-width:500px; border-collapse:collapse; font-size:17px; margin:8px 0;">
+        <table style="width:100%; max-width:700px; border-collapse:collapse; font-size:17px; margin:8px 0;">
         <thead>
             <tr style="background:#0d3b66; color:#fff;">
             <th style="padding:6px 10px; text-align:left;">Item</th>
@@ -672,46 +677,46 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             </tr>
         </thead>
         <tbody>
-            <tr style="border-bottom:1px solid #444;">
+            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
             <td style="padding:5px 10px;">Plastic water bottle (500&nbsp;ml)</td>
             <td style="padding:5px 10px; text-align:right;">~20&nbsp;g</td>
             <td style="padding:5px 10px; text-align:right; font-weight:600;">50,000</td>
             </tr>
-            <tr style="border-bottom:1px solid #444;">
+            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
             <td style="padding:5px 10px;">Carrier bag</td>
             <td style="padding:5px 10px; text-align:right;">~7&nbsp;g</td>
             <td style="padding:5px 10px; text-align:right; font-weight:600;">~143,000</td>
             </tr>
-            <tr style="border-bottom:1px solid #444;">
+            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
             <td style="padding:5px 10px;">Disposable cutlery set</td>
             <td style="padding:5px 10px; text-align:right;">~4&nbsp;g</td>
             <td style="padding:5px 10px; text-align:right; font-weight:600;">~250,000</td>
             </tr>
-            <tr style="border-bottom:1px solid #444;">
+            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
             <td style="padding:5px 10px;">Straw</td>
             <td style="padding:5px 10px; text-align:right;">~0.4&nbsp;g</td>
             <td style="padding:5px 10px; text-align:right; font-weight:600;">~2.5&nbsp;million</td>
             </tr>
-            <tr style="border-bottom:1px solid #444;">
+            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
             <td style="padding:5px 10px;">Small gillnet</td>
             <td style="padding:5px 10px; text-align:right;">~5&nbsp;kg</td>
             <td style="padding:5px 10px; text-align:right; font-weight:600;">~200</td>
             </tr>
-            <tr>
+            <!-- <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
             <td style="padding:5px 10px;">Large trawl-net fragment</td>
             <td style="padding:5px 10px; text-align:right;">~50&nbsp;kg</td>
             <td style="padding:5px 10px; text-align:right; font-weight:600;">~20</td>
-            </tr>
+            </tr> -->
         </tbody>
         </table>
 
-        <br>
+        <!-- <br> -->
 
-        <p class="about-body">Click any ocean region to release a cloud of virtual particles and watch them drift with the surface currents. A sidebar chart tracks the cloud's spreading over time. Use the control panel to adjust how many particles are released, how much small-scale turbulence (diffusion) they experience, and how long the cloud survives before fading. Toggle the ocean-current labels and the particle trajectory trails on or off.</p>
+        <!-- <p class="about-body">Click any ocean region to release a cloud of virtual particles and watch them drift with the surface currents. A sidebar chart tracks the cloud's spreading over time. Use the control panel to adjust how many particles are released, how much small-scale turbulence (diffusion) they experience, and how long the cloud survives before fading. Toggle the ocean-current labels and the particle trajectory trails on or off.</p>
 
-        <p class="about-body">Small-scale turbulence (the &ldquo;Diffusion&rdquo; slider) dramatically widens the spread of particles, even though the large-scale currents determine which gyre they end up in. The colored heatmap shows which regions particles visit most frequently.</p>
+        <p class="about-body">Small-scale turbulence (the &ldquo;Diffusion&rdquo; slider) dramatically widens the spread of particles, even though the large-scale currents determine which gyre they end up in. The colored heatmap shows which regions particles visit most frequently.</p> -->
 
-        <hr class="about-divider">
+        <!-- <hr class="about-divider"> -->
 
     </div>
     <div class="about-footer">
