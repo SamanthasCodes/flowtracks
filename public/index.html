@@ -6,9 +6,6 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: linear-gradient(to bottom, #1a6b9a 0%, #0e4a70 15%, #082d50 35%, #041a32 60%, #010d1e 100%); background-attachment: fixed; }
 
-/* Hide dat.gui default panel */
-.dg.ac { display: none !important; }
-
 /* ================================================================
    MAIN SIMULATION PAGE
    ================================================================ */
@@ -748,17 +745,18 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             <div class="sidebar-legend">
                 <div class="legend-lbl">Particle density</div>
                 <div class="legend-bar">
-                    <div style="flex:1;background:#1a4a1a"></div>
-                    <div style="flex:1;background:#2d6e1a"></div>
-                    <div style="flex:1;background:#5a9910"></div>
-                    <div style="flex:1;background:#8aaa22"></div>
-                    <div style="flex:1;background:#b0d028"></div>
-                    <div style="flex:1;background:#c8f03c"></div>
+                    <!-- Rainbow stops matching SimCore.heatmapColor(0 .. 1) -->
+                    <div style="flex:1;background:rgb(0, 0, 255)"></div>
+                    <div style="flex:1;background:rgb(0, 170, 255)"></div>
+                    <div style="flex:1;background:rgb(85, 255, 170)"></div>
+                    <div style="flex:1;background:rgb(255, 255, 0)"></div>
+                    <div style="flex:1;background:rgb(255, 85, 0)"></div>
+                    <div style="flex:1;background:rgb(255, 0, 0)"></div>
                 </div>
                 <div class="legend-ends"><span>sparse</span><span>dense</span></div>
             </div>
             <div class="sidebar-chart">
-                <div class="sidebar-chart-title">Particle spread over time</div>
+                <div class="sidebar-chart-title">How far does plastic travel?</div>
                 <div id="chartHost" class="sidebar-chart-host"></div>
             </div>
             <div style="flex-shrink:0;"></div>
@@ -804,7 +802,6 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 <script src="wind-gl.js"></script>
 <script src="sim_core.js"></script>
 <script src="index.js"></script>
@@ -943,6 +940,9 @@ function resetSim() {
     if (typeof tracerClouds !== 'undefined') tracerClouds.length = 0;
     if (typeof chartClouds  !== 'undefined') chartClouds.length  = 0;
     if (typeof heatBins     !== 'undefined') heatBins.fill(0);
+    // Wipe the chart canvas immediately so the placeholder shows without
+    // waiting for the next frame() tick.
+    if (typeof drawChart === 'function') drawChart();
 }
 </script>
 

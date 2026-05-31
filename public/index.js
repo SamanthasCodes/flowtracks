@@ -41,10 +41,10 @@ function drawChart() {
     chartCtx.clearRect(0, 0, cw, ch);
 
     if (chartClouds.length === 0) {
-        chartCtx.fillStyle = 'rgba(240,237,232,0.2)';
-        chartCtx.font = '14px "Cormorant SC", serif';
+        chartCtx.fillStyle = 'rgba(240,237,232,0.4)';
+        chartCtx.font = '12px "Cormorant SC", serif';
         chartCtx.textAlign = 'center';
-        chartCtx.fillText('Release particles to track spread', cw / 2, ch / 2);
+        chartCtx.fillText('Click the ocean to release particles', cw / 2, ch / 2);
         chartCtx.textAlign = 'left';
         return;
     }
@@ -60,10 +60,11 @@ function drawChart() {
     maxAge = Math.max(maxAge, 10);
     maxSpread = Math.max(maxSpread, 0.01);
 
-    var padL = 28, padR = 6, padT = 16, padB = 18;
+    var padL = 32, padR = 8, padT = 14, padB = 22;
     var plotW = cw - padL - padR;
     var plotH = ch - padT - padB;
 
+    // Gridlines
     chartCtx.strokeStyle = 'rgba(74,216,192,0.12)';
     chartCtx.lineWidth = 0.5;
     for (var i = 0; i <= 3; i++) {
@@ -74,33 +75,45 @@ function drawChart() {
         chartCtx.stroke();
     }
 
-    chartCtx.fillStyle = 'rgba(240,237,232,0.3)';
-    chartCtx.font = '11px "Cormorant", serif';
+    // Y-axis tick labels \u2014 km (spread \u00d7 20000)
+    chartCtx.fillStyle = 'rgba(240,237,232,0.5)';
+    chartCtx.font = '10px "Cormorant", serif';
     chartCtx.textAlign = 'right';
-    chartCtx.fillText((maxSpread * 360).toFixed(1) + '\u00b0', padL - 3, padT + 8);
+    chartCtx.fillText((maxSpread * 20000).toFixed(0), padL - 3, padT + 8);
     chartCtx.fillText('0', padL - 3, padT + plotH + 3);
 
-    // Rotated LONGITUDE y-axis label
+    // Rotated y-axis label
     chartCtx.save();
-    chartCtx.fillStyle = 'rgba(240,237,232,0.25)';
-    chartCtx.font = '11px "Cormorant SC", serif';
+    chartCtx.fillStyle = 'rgba(240,237,232,0.4)';
+    chartCtx.font = '9px "Cormorant SC", serif';
     chartCtx.textAlign = 'center';
-    chartCtx.translate(8, padT + plotH / 2);
+    chartCtx.translate(9, padT + plotH / 2);
     chartCtx.rotate(-Math.PI / 2);
-    chartCtx.fillText('LONGITUDE', 0, 0);
+    chartCtx.fillText('Spread (km)', 0, 0);
     chartCtx.restore();
 
-    // STEPS x-axis label
-    chartCtx.fillStyle = 'rgba(240,237,232,0.25)';
-    chartCtx.font = '11px "Cormorant SC", serif';
+    // X-axis tick labels \u2014 days (frames \u00d7 SECONDS_PER_FRAME / 86400)
+    chartCtx.fillStyle = 'rgba(240,237,232,0.5)';
+    chartCtx.font = '10px "Cormorant", serif';
     chartCtx.textAlign = 'center';
-    chartCtx.fillText('STEPS', padL + plotW / 2, ch - 2);
+    chartCtx.fillText('0', padL, padT + plotH + 12);
+    chartCtx.fillText(
+        (maxAge * SimCore.SECONDS_PER_FRAME / 86400).toFixed(0),
+        padL + plotW, padT + plotH + 12
+    );
 
-    var colors = ['#c8f03c', '#4dd8c0', '#2ab8a0', '#f0c83c', '#a8e040', '#7dd8c0'];
+    // X-axis label
+    chartCtx.fillStyle = 'rgba(240,237,232,0.4)';
+    chartCtx.font = '9px "Cormorant SC", serif';
+    chartCtx.textAlign = 'center';
+    chartCtx.fillText('Time (days)', padL + plotW / 2, ch - 2);
+
+    // Curves \u2014 prefer cloud's own color (rotating palette), fall back to greens
+    var fallback = ['#c8f03c', '#4dd8c0', '#2ab8a0', '#f0c83c', '#a8e040', '#7dd8c0'];
     for (var c = 0; c < chartClouds.length; c++) {
         var hist = chartClouds[c].spreadHistory;
         if (hist.length < 2) continue;
-        chartCtx.strokeStyle = colors[c % colors.length];
+        chartCtx.strokeStyle = chartClouds[c].color || fallback[c % fallback.length];
         chartCtx.lineWidth = 1.5;
         chartCtx.beginPath();
         for (var i = 0; i < hist.length; i++) {
@@ -308,25 +321,13 @@ function frame() {
 }
 frame();
 
-const gui = new dat.GUI();
-gui.add(wind, 'numParticles', 1024, 65536);
-gui.add(wind, 'fadeOpacity', 0.9, 0.999).step(0.001).updateDisplay();
-gui.add(wind, 'speedFactor', 0.5, 3.0);
-gui.add(wind, 'dropRate', 0, 0.05);
-gui.add(wind, 'dropRateBump', 0, 0.2);
-gui.add(wind, 'diffusion', 0, 0.002).step(0.0001);
-
+// Sim state (was dat.GUI-bound in main; the sidebar widgets in index.html's
+// inline <script> handlers now read/write these directly).
 const meta = {
     'date (YYYY-MM-DD)': '2021-01-08',
     'retina resolution': true,
     showCurrents: true
 };
-gui.add(meta, 'date (YYYY-MM-DD)').onFinishChange(function (val) {
-    updateWind(val);
-});
-if (pxRatio !== 1) {
-    gui.add(meta, 'retina resolution').onFinishChange(updateRetina);
-}
 updateWind('2021-01-08');
 updateRetina();
 
