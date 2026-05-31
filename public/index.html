@@ -711,7 +711,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                            oninput="setParticles(this.value)">
                 </div>
 
-                <div class="ctrl-item">
+                <div class="ctrl-item" data-feature="trajectories">
                     <div class="ctrl-tooltip">controls particle trails; toggle on to trace past movement or off for a cleaner view of only current particle cloud positions.</div>
                     <div class="ctrl-toggle-row">
                         <span class="ctrl-label">Trajectories</span>
@@ -806,6 +806,15 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 <script src="sim_core.js"></script>
 <script src="index.js"></script>
 <script>
+// ---- Feature flags ----
+// Flip to true to surface the in-progress Trajectories toggle in the sidebar.
+var FEATURE_TRAJECTORIES = false;
+if (!FEATURE_TRAJECTORIES) {
+    document.querySelectorAll('[data-feature="trajectories"]').forEach(function (el) {
+        el.style.display = 'none';
+    });
+}
+
 // ---- Falling particles on splash ----
 (function () {
     var container = document.getElementById('splashParticles');
@@ -930,8 +939,10 @@ function toggleRetina() {
     var on = !tog.classList.contains('off');
     if (typeof meta !== 'undefined') {
         meta['retina resolution'] = on;
-        if (typeof resizeTracers === 'function') resizeTracers();
-        if (typeof drawLandAndBorders === 'function') drawLandAndBorders();
+        // Use the unified recompute path so #canvas (WebGL) actually gets
+        // resized and wind.resize() fires. The old code only touched the
+        // tracer overlay and land canvas, leaving the WebGL layer stale.
+        if (typeof recomputeLayout === 'function') recomputeLayout();
     }
 }
 

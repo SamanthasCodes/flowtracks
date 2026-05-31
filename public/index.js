@@ -864,15 +864,19 @@ function drawArrow(ctx, x, y, angle, size) {
     ctx.restore();
 }
 
-// Pure-ish: takes ctx, current array, and {showCurrents, cw, ch}.
-// Returns immediately for showCurrents=false or zero canvas size, so all
-// gating happens here. The call site in drawTracers passes live globals.
+// Pure-ish: takes ctx, current array, and {showCurrents, cw, ch, ratio}.
+// `ratio` is the device-pixel ratio of the target canvas — strokes, fonts,
+// and arrowheads must be multiplied by it so their CSS-pixel size stays
+// constant whether the user has retina mode on or off. Without this, the
+// currents visibly grow when retina mode is turned off (the bug juliosbranch
+// inherits from the same code).
 function drawCurrents(ctx, currents, opts) {
     opts = opts || {};
     if (opts.showCurrents === false) return;
     var cw = opts.cw;
     var ch = opts.ch;
     if (!cw || !ch) return;
+    var ratio = opts.ratio || 1;
 
     for (var i = 0; i < currents.length; i++) {
         var cur = currents[i];
@@ -897,7 +901,7 @@ function drawCurrents(ctx, currents, opts) {
         if (seg.length > 0) segments.push(seg);
         if (segments.length === 0) continue;
 
-        ctx.lineWidth = 10;
+        ctx.lineWidth = 10 * ratio;
         ctx.strokeStyle = cur.color;
         ctx.globalAlpha = 0.85;
 
@@ -912,7 +916,7 @@ function drawCurrents(ctx, currents, opts) {
             if (dx !== 0 || dy !== 0) {
                 var angle = Math.atan2(dy, dx);
                 ctx.fillStyle = cur.color;
-                drawArrow(ctx, sg[last].x, sg[last].y, angle, 8);
+                drawArrow(ctx, sg[last].x, sg[last].y, angle, 8 * ratio);
             }
         }
 
@@ -933,11 +937,11 @@ function drawCurrents(ctx, currents, opts) {
         ctx.translate(bestSeg[mi].x, bestSeg[mi].y);
         ctx.rotate(langle);
         ctx.globalAlpha = 0.95;
-        ctx.font = 'bold 25px sans-serif';
+        ctx.font = 'bold ' + (25 * ratio) + 'px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * ratio;
         ctx.strokeText(cur.name, 0, 0);
         ctx.fillStyle = '#fff';
         ctx.fillText(cur.name, 0, 0);
@@ -954,10 +958,17 @@ function drawTracers() {
     tracerCtx.clearRect(0, 0, w, h);
 
     drawHeatmap();
+    // Pass `ratio / pxRatio`, not `ratio`. juliosbranch's drawCurrents used
+    // raw canvas-pixel sizes (lineWidth=10, font=25px, arrow=8) — in retina
+    // mode those render as ~5 CSS px because the canvas is 2x bigger than
+    // its CSS box. That's the visual size we want to preserve. Scaling by
+    // `ratio / pxRatio` makes retina-OFF produce the same CSS size as
+    // retina-ON instead of doubling it.
     drawCurrents(tracerCtx, currentPaths, {
         showCurrents: meta.showCurrents,
         cw: w,
-        ch: h
+        ch: h,
+        ratio: ratio / pxRatio
     });
 
     if (tracerClouds.length === 0) return;
