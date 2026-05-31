@@ -652,6 +652,67 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 
         <hr class="about-divider">
 
+        <!-- Verbatim content ported from juliosbranch's header section -->
+        <div class="about-heading">Where does my trash go?</div>
+
+        <p class="about-body">Plastic is one of the most widespread environmental pollutants on Earth.</p>
+
+        <p class="about-body">The visualization below is a very simple simulation of buoyant plastic debris carried by ocean surface currents. They do not sink, degrade, fragment, or beach.</p>
+
+        <p class="about-body">Each dot on the map represents a single piece of plastic&mdash;a bottle forgotten at the beach, a net a fisherman lost, a straw tossed overboard. To make the scale tangible, here is what one metric ton of common ocean debris looks like:</p>
+
+        <br>
+
+        <table style="width:100%; max-width:500px; border-collapse:collapse; font-size:17px; margin:8px 0;">
+        <thead>
+            <tr style="background:#0d3b66; color:#fff;">
+            <th style="padding:6px 10px; text-align:left;">Item</th>
+            <th style="padding:6px 10px; text-align:right;">Weight per piece</th>
+            <th style="padding:6px 10px; text-align:right;">Pieces per tonne</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom:1px solid #444;">
+            <td style="padding:5px 10px;">Plastic water bottle (500&nbsp;ml)</td>
+            <td style="padding:5px 10px; text-align:right;">~20&nbsp;g</td>
+            <td style="padding:5px 10px; text-align:right; font-weight:600;">50,000</td>
+            </tr>
+            <tr style="border-bottom:1px solid #444;">
+            <td style="padding:5px 10px;">Carrier bag</td>
+            <td style="padding:5px 10px; text-align:right;">~7&nbsp;g</td>
+            <td style="padding:5px 10px; text-align:right; font-weight:600;">~143,000</td>
+            </tr>
+            <tr style="border-bottom:1px solid #444;">
+            <td style="padding:5px 10px;">Disposable cutlery set</td>
+            <td style="padding:5px 10px; text-align:right;">~4&nbsp;g</td>
+            <td style="padding:5px 10px; text-align:right; font-weight:600;">~250,000</td>
+            </tr>
+            <tr style="border-bottom:1px solid #444;">
+            <td style="padding:5px 10px;">Straw</td>
+            <td style="padding:5px 10px; text-align:right;">~0.4&nbsp;g</td>
+            <td style="padding:5px 10px; text-align:right; font-weight:600;">~2.5&nbsp;million</td>
+            </tr>
+            <tr style="border-bottom:1px solid #444;">
+            <td style="padding:5px 10px;">Small gillnet</td>
+            <td style="padding:5px 10px; text-align:right;">~5&nbsp;kg</td>
+            <td style="padding:5px 10px; text-align:right; font-weight:600;">~200</td>
+            </tr>
+            <tr>
+            <td style="padding:5px 10px;">Large trawl-net fragment</td>
+            <td style="padding:5px 10px; text-align:right;">~50&nbsp;kg</td>
+            <td style="padding:5px 10px; text-align:right; font-weight:600;">~20</td>
+            </tr>
+        </tbody>
+        </table>
+
+        <br>
+
+        <p class="about-body">Click any ocean region to release a cloud of virtual particles and watch them drift with the surface currents. A sidebar chart tracks the cloud's spreading over time. Use the control panel to adjust how many particles are released, how much small-scale turbulence (diffusion) they experience, and how long the cloud survives before fading. Toggle the ocean-current labels and the particle trajectory trails on or off.</p>
+
+        <p class="about-body">Small-scale turbulence (the &ldquo;Diffusion&rdquo; slider) dramatically widens the spread of particles, even though the large-scale currents determine which gyre they end up in. The colored heatmap shows which regions particles visit most frequently.</p>
+
+        <hr class="about-divider">
+
     </div>
     <div class="about-footer">
         <button class="ocean-btn" onclick="enterSim()">Start Tracking</button>
