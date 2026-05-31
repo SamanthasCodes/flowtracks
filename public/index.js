@@ -14,12 +14,11 @@ const gl = canvas.getContext('webgl', {antialiasing: false});
 const tracerCanvas = document.getElementById('tracers');
 let tracerCtx = tracerCanvas.getContext('2d');
 
-let windPixels = null;
-let windMeta = null;
+var windPixels = null;
+var windMeta = null;
 
-let tracerClouds = [];
-const CLOUD_MAX_AGE = 5000;
-const TRACER_COUNT = 50;
+var tracerClouds = [];
+var params = { cloudLifetimeDays: 30, particleCount: 50, showTrajectories: false };
 const LEAD_CIRCLE_R = 2;
 var HEAT_W = 360;
 var HEAT_H = 180;
@@ -136,14 +135,6 @@ wind.diffusion = 0.001;
 // HEATMAP
 // ================================================================
 
-function heatmapColor(t) {
-    // dark ocean → toxic yellow-green based on density
-    var r = Math.floor(t * 200);
-    var g = Math.floor(40 + t * 200);
-    var b = Math.floor(t * 60);
-    return [r, g, b];
-}
-
 function drawHeatmap() {
     var maxVal = 0;
     for (var i = 0; i < heatBins.length; i++) {
@@ -163,7 +154,7 @@ function drawHeatmap() {
             imgData.data[p + 3] = 0;
         } else {
             var v = Math.log(1 + heatBins[i]) / logMax;
-            var col = heatmapColor(v);
+            var col = SimCore.heatmapColor(v);
             imgData.data[p]     = col[0];
             imgData.data[p + 1] = col[1];
             imgData.data[p + 2] = col[2];
@@ -327,7 +318,8 @@ gui.add(wind, 'diffusion', 0, 0.002).step(0.0001);
 
 const meta = {
     'date (YYYY-MM-DD)': '2021-01-08',
-    'retina resolution': true
+    'retina resolution': true,
+    showCurrents: true
 };
 gui.add(meta, 'date (YYYY-MM-DD)').onFinishChange(function (val) {
     updateWind(val);
@@ -445,24 +437,27 @@ function isLand(texX, texY) {
     return windPixels.data[idx + 2] > 128;
 }
 
-canvas.addEventListener('click', function (e) {
-    if (!windPixels || !windMeta) return;
+var simMapEl = document.querySelector('.sim-map');
+if (simMapEl) {
+    simMapEl.addEventListener('click', function (e) {
+        if (!windPixels || !windMeta) return;
+        if (tracerClouds.length > 0) return;  // single-release lockout
 
-    var tex = screenToTex(e.clientX, e.clientY);
-    if (isLand(tex.x, tex.y)) return;
+        var tex = screenToTex(e.clientX, e.clientY);
+        if (isLand(tex.x, tex.y)) return;
 
-    var particles = [];
-    var spread = 0.02;
-    for (var i = 0; i < TRACER_COUNT; i++) {
-        var x = tex.x + (Math.random() - 0.5) * spread;
-        var y = tex.y + (Math.random() - 0.5) * spread;
-        particles.push({x: x, y: y, path: [{x: x, y: y}]});
-    }
-    var cloud = {particles: particles, age: 0, spreadHistory: []};
-    tracerClouds.push(cloud);
-    chartClouds.push(cloud);
-
-});
+        var particles = [];
+        var spread = 0.02;
+        for (var i = 0; i < params.particleCount; i++) {
+            var x = tex.x + (Math.random() - 0.5) * spread;
+            var y = tex.y + (Math.random() - 0.5) * spread;
+            particles.push({x: x, y: y, path: [{x: x, y: y}]});
+        }
+        var cloud = {particles: particles, age: 0, spreadHistory: []};
+        tracerClouds.push(cloud);
+        chartClouds.push(cloud);
+    });
+}
 
 function updateTracers() {
     if (!windPixels || !windMeta) return;
@@ -472,14 +467,13 @@ function updateTracers() {
     var vMin = windMeta.vMin, vMax = windMeta.vMax;
     var sf = wind.speedFactor || 0.25;
     var diff = wind.diffusion || 0;
-
-    for (var i = 0; i < heatBins.length; i++) heatBins[i] *= 0.997;
+    var lifetimeFrames = SimCore.cloudLifetimeToFrames(params.cloudLifetimeDays);
 
     for (var c = tracerClouds.length - 1; c >= 0; c--) {
         var cloud = tracerClouds[c];
         cloud.age++;
 
-        if (cloud.age > CLOUD_MAX_AGE) {
+        if (cloud.age > lifetimeFrames) {
             tracerClouds.splice(c, 1);
             continue;
         }
@@ -499,62 +493,185 @@ function updateTracers() {
             var u = uMin + r * (uMax - uMin);
             var v = vMin + g * (vMax - vMin);
 
-            var latRad = (pt.y * 180 - 90) * Math.PI / 180;
-            var distortion = Math.cos(latRad);
-            var dTexX = (u / Math.max(distortion, 0.01)) * 0.0001 * sf;
-            var dTexY = -v * 0.0001 * sf;
+            var next = SimCore.advectStep(
+                pt,
+                { u: u, v: v },
+                { speedFactor: sf, diffusion: diff }
+            );
 
-            var dDiffX = (Math.random() - 0.5) * 2 * diff;
-            var dDiffY = (Math.random() - 0.5) * 2 * diff;
-
-            var newX = (pt.x + dTexX + dDiffX);
-            var newY = (pt.y + dTexY + dDiffY);
-
-            var nwx = Math.floor(newX * W) % W; if (nwx < 0) nwx += W;
-            var nwy = Math.floor(newY * H) % H; if (nwy < 0) nwy += H;
+            var nwx = Math.floor(next.x * W) % W; if (nwx < 0) nwx += W;
+            var nwy = Math.floor(next.y * H) % H; if (nwy < 0) nwy += H;
             var nidx = (nwy * W + nwx) * 4;
             if (windPixels.data[nidx + 2] > 128) continue;
 
-            pt.x = newX % 1; if (pt.x < 0) pt.x += 1;
-            pt.y = newY % 1; if (pt.y < 0) pt.y += 1;
+            pt.x = next.x;
+            pt.y = next.y;
+            pt.path.push({ x: pt.x, y: pt.y });
 
-            pt.path.push({x: pt.x, y: pt.y});
-
-            var bx = Math.floor(pt.x * HEAT_W) % HEAT_W;
-            var by = Math.floor(pt.y * HEAT_H) % HEAT_H;
-            heatBins[by * HEAT_W + bx]++;
+            SimCore.accumulateHeat(heatBins, HEAT_W, HEAT_H, pt.x, pt.y);
         }
 
-        var cx = 0, cy = 0, count = 0;
+        // Spread metric, computed only over ocean-resident particles.
+        var oceanParts = [];
         var activeParts = cloud.particles;
         for (var pp = 0; pp < activeParts.length; pp++) {
-            var wx = Math.floor(activeParts[pp].x * W) % W;
-            var wy = Math.floor(activeParts[pp].y * H) % H;
-            var idx2 = (wy * W + wx) * 4;
-            if (windPixels.data[idx2 + 2] > 128) continue;
-            cx += activeParts[pp].x;
-            cy += activeParts[pp].y;
-            count++;
+            var wxp = Math.floor(activeParts[pp].x * W) % W;
+            var wyp = Math.floor(activeParts[pp].y * H) % H;
+            if (windPixels.data[(wyp * W + wxp) * 4 + 2] > 128) continue;
+            oceanParts.push(activeParts[pp]);
         }
-        if (count > 1) {
-            cx /= count;
-            cy /= count;
-            var spread = 0;
-            for (var pp = 0; pp < activeParts.length; pp++) {
-                var wx = Math.floor(activeParts[pp].x * W) % W;
-                var wy = Math.floor(activeParts[pp].y * H) % H;
-                var idx2 = (wy * W + wx) * 4;
-                if (windPixels.data[idx2 + 2] > 128) continue;
-                var dx = activeParts[pp].x - cx;
-                var dy = activeParts[pp].y - cy;
-                if (dx > 0.5) dx -= 1;
-                if (dx < -0.5) dx += 1;
-                spread += Math.sqrt(dx * dx + dy * dy);
-            }
-            spread /= count;
-            cloud.spreadHistory.push(spread);
+        if (oceanParts.length >= 2) {
+            cloud.spreadHistory.push(SimCore.spreadMetric(oceanParts));
         }
     }
+}
+
+// ================================================================
+// CURRENTS OVERLAY (smoothed polylines + arrows + labels)
+// ================================================================
+
+var currentPaths = [
+    { name: 'Gulf Stream', color: '#e03030',
+      path: [[-80,24],[-79,27],[-80,30],[-77,33],[-74,36],[-70,39],
+             [-65,39],[-58,41],[-50,40],[-42,43]] },
+    { name: 'N. Atlantic Drift', color: '#e03030',
+      path: [[-42,47],[-36,49],[-29,50],[-22,52],[-15,55],[-8,57],[0,58]] },
+    { name: 'Kuroshio', color: '#e03030',
+      path: [[117,18],[124,22],[132,26],[128,29],[135,32],
+             [139,34],[142,35],[150,34],[158,35],[166,36]] },
+    { name: 'N. Pacific Current', color: '#e03030',
+      path: [[166,38],[174,39],[180,40],[-175,40],[-170,39],
+             [-164,38],[-156,37],[-148,36],[-140,35]] },
+    { name: 'North Equatorial (Pacific)', color: '#e03030',
+      path: [[-170,15],[-160,15],[-150,14],[-140,14],[-130,13],[-120,13],[-110,12]] },
+    { name: 'N. Eq. (Atlantic)', color: '#e03030',
+      path: [[-55,8],[-45,7],[-35,7],[-25,6],[-15,5]] },
+    { name: 'South Equatorial (Pacific)', color: '#e03030',
+      path: [[-170,-3],[-160,-3],[-150,-3],[-140,-3],[-130,-3],
+             [-120,-3],[-110,-3],[-100,-3],[-90,-3]] },
+    { name: 'S. Eq. (Atlantic)', color: '#e03030',
+      path: [[-40,-1],[-30,-1],[-20,-1],[-10,0],[-1,0]] },
+    { name: 'Eq. Countercurrent', color: '#e03030',
+      path: [[150,5],[160,6],[170,7],[180,7],[-170,7],[-160,7],[-150,6],[-140,5]] },
+    { name: 'Brazil Current', color: '#e03030',
+      path: [[-36,-15],[-36,-19],[-36,-23],[-43,-28],[-45,-32],[-49,-36],[-52,-40],[-54,-45]] },
+    { name: 'E. Australia', color: '#e03030',
+      path: [[156,-25],[157,-29],[157,-33],[154,-36],[153,-39],[152,-41]] },
+    { name: 'Agulhas', color: '#e03030',
+      path: [[43,-15],[40,-20],[38,-23],[36,-26],[35,-29],[33,-32],[26,-36],[27,-38],[40,-40]] },
+    { name: 'Alaska Current', color: '#e03030',
+      path: [[-132,48],[-135,50],[-139,53],[-144,55],[-150,56],[-156,55]] },
+    { name: 'Monsoon Drift', color: '#e03030',
+      path: [[95,-2],[85,-2],[75,-2],[65,-2],[55,-1],[45,0]] }
+];
+
+function drawSmoothPath(ctx, pts) {
+    if (pts.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var i = 0; i < pts.length - 1; i++) {
+        var mx = (pts[i].x + pts[i + 1].x) / 2;
+        var my = (pts[i].y + pts[i + 1].y) / 2;
+        ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+    ctx.stroke();
+}
+
+function drawArrow(ctx, x, y, angle, size) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-size * 1.2, -size * 0.4);
+    ctx.lineTo(-size * 0.7, 0);
+    ctx.lineTo(-size * 1.2, size * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+}
+
+// Pure-ish: takes ctx, current array, and {showCurrents, cw, ch}.
+// Returns immediately for showCurrents=false or zero canvas size, so all
+// gating happens here. The call site in drawTracers passes live globals.
+function drawCurrents(ctx, currents, opts) {
+    opts = opts || {};
+    if (opts.showCurrents === false) return;
+    var cw = opts.cw;
+    var ch = opts.ch;
+    if (!cw || !ch) return;
+
+    for (var i = 0; i < currents.length; i++) {
+        var cur = currents[i];
+        var segments = [];
+        var seg = [];
+
+        for (var j = 0; j < cur.path.length; j++) {
+            var lon = cur.path[j][0];
+            var lat = cur.path[j][1];
+            var tx = ((lon + 360) % 360) / 360 * cw;
+            var ty = (90 - lat) / 180 * ch;
+
+            if (seg.length > 0) {
+                var lastX = seg[seg.length - 1].x;
+                if (Math.abs(tx - lastX) > cw * 0.5) {
+                    segments.push(seg);
+                    seg = [];
+                }
+            }
+            seg.push({ x: tx, y: ty });
+        }
+        if (seg.length > 0) segments.push(seg);
+        if (segments.length === 0) continue;
+
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = cur.color;
+        ctx.globalAlpha = 0.85;
+
+        for (var s = 0; s < segments.length; s++) {
+            var sg = segments[s];
+            if (sg.length < 2) continue;
+            drawSmoothPath(ctx, sg);
+
+            var last = sg.length - 1;
+            var dx = sg[last].x - sg[Math.max(0, last - 1)].x;
+            var dy = sg[last].y - sg[Math.max(0, last - 1)].y;
+            if (dx !== 0 || dy !== 0) {
+                var angle = Math.atan2(dy, dx);
+                ctx.fillStyle = cur.color;
+                drawArrow(ctx, sg[last].x, sg[last].y, angle, 8);
+            }
+        }
+
+        // Label on the longest segment, oriented to flow direction
+        var bestSeg = segments[0];
+        for (var s2 = 1; s2 < segments.length; s2++) {
+            if (segments[s2].length > bestSeg.length) bestSeg = segments[s2];
+        }
+        var mi = Math.floor(bestSeg.length / 2);
+        var ldx = bestSeg[Math.min(bestSeg.length - 1, mi + 1)].x
+                - bestSeg[Math.max(0, mi - 1)].x;
+        var ldy = bestSeg[Math.min(bestSeg.length - 1, mi + 1)].y
+                - bestSeg[Math.max(0, mi - 1)].y;
+        var langle = Math.atan2(ldy, ldx);
+        if (Math.cos(langle) < 0) langle += Math.PI;
+
+        ctx.save();
+        ctx.translate(bestSeg[mi].x, bestSeg[mi].y);
+        ctx.rotate(langle);
+        ctx.globalAlpha = 0.95;
+        ctx.font = 'bold 25px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+        ctx.lineWidth = 3;
+        ctx.strokeText(cur.name, 0, 0);
+        ctx.fillStyle = '#fff';
+        ctx.fillText(cur.name, 0, 0);
+        ctx.restore();
+    }
+    ctx.globalAlpha = 1;
 }
 
 function drawTracers() {
@@ -565,6 +682,11 @@ function drawTracers() {
     tracerCtx.clearRect(0, 0, w, h);
 
     drawHeatmap();
+    drawCurrents(tracerCtx, currentPaths, {
+        showCurrents: meta.showCurrents,
+        cw: w,
+        ch: h
+    });
 
     if (tracerClouds.length === 0) return;
 
@@ -576,22 +698,23 @@ function drawTracers() {
         var parts = tracerClouds[c].particles;
         for (var p = 0; p < parts.length; p++) {
             var path = parts[p].path;
-            if (path.length < 2) continue;
 
-            tracerCtx.beginPath();
-            var prevX = path[0].x;
-            tracerCtx.moveTo(path[0].x * w, path[0].y * h);
-            for (var i = 1; i < path.length; i++) {
-                if (Math.abs(path[i].x - prevX) > 0.5) {
-                    tracerCtx.stroke();
-                    tracerCtx.beginPath();
-                    tracerCtx.moveTo(path[i].x * w, path[i].y * h);
-                } else {
-                    tracerCtx.lineTo(path[i].x * w, path[i].y * h);
+            if (params.showTrajectories && path.length >= 2) {
+                tracerCtx.beginPath();
+                var prevX = path[0].x;
+                tracerCtx.moveTo(path[0].x * w, path[0].y * h);
+                for (var i = 1; i < path.length; i++) {
+                    if (Math.abs(path[i].x - prevX) > 0.5) {
+                        tracerCtx.stroke();
+                        tracerCtx.beginPath();
+                        tracerCtx.moveTo(path[i].x * w, path[i].y * h);
+                    } else {
+                        tracerCtx.lineTo(path[i].x * w, path[i].y * h);
+                    }
+                    prevX = path[i].x;
                 }
-                prevX = path[i].x;
+                tracerCtx.stroke();
             }
-            tracerCtx.stroke();
 
             var fx = parts[p].x * w;
             var fy = parts[p].y * h;
@@ -603,3 +726,13 @@ function drawTracers() {
 }
 
 resizeTracers();
+
+// Expose state references for tests + the inline <script> handlers in index.html.
+// (const-declared bindings like `meta` are not auto-promoted to window.)
+if (typeof window !== 'undefined') {
+    window.params = params;
+    window.tracerClouds = tracerClouds;
+    window.chartClouds = chartClouds;
+    window.heatBins = heatBins;
+    window.meta = meta;
+}

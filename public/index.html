@@ -566,7 +566,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                         <span class="ctrl-value" id="val-diffusion">0.001</span>
                     </div>
                     <input type="range" class="ctrl-slider" id="sl-diffusion"
-                           min="0" max="0.01" step="0.0001" value="0.001"
+                           min="0" max="0.002" step="0.0001" value="0.001"
                            oninput="setDiffusion(this.value)">
                 </div>
 
@@ -585,10 +585,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                     <div class="ctrl-tooltip">adjusts how many particles are released per click; higher counts create a denser view of the spreading pattern.</div>
                     <div class="ctrl-header">
                         <span class="ctrl-label">Particle count</span>
-                        <span class="ctrl-value" id="val-particles">65,000</span>
+                        <span class="ctrl-value" id="val-particles">50</span>
                     </div>
                     <input type="range" class="ctrl-slider" id="sl-particles"
-                           min="1000" max="100000" step="1000" value="65000"
+                           min="1" max="50" step="1" value="50"
                            oninput="setParticles(this.value)">
                 </div>
 
@@ -596,7 +596,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                     <div class="ctrl-tooltip">controls particle trails; toggle on to trace past movement or off for a cleaner view of only current particle cloud positions.</div>
                     <div class="ctrl-toggle-row">
                         <span class="ctrl-label">Trajectories</span>
-                        <div class="ctrl-toggle" id="toggle-trajectories" onclick="toggleTrajectories()">
+                        <div class="ctrl-toggle off" id="toggle-trajectories" onclick="toggleTrajectories()">
                             <div class="ctrl-toggle-knob"></div>
                         </div>
                     </div>
@@ -665,6 +665,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
 <script src="wind-gl.js"></script>
+<script src="sim_core.js"></script>
 <script src="index.js"></script>
 <script>
 // ---- Falling particles on splash ----
@@ -759,35 +760,28 @@ function setDiffusion(v) {
     var n = parseFloat(v);
     document.getElementById('val-diffusion').textContent = n.toFixed(4);
     if (typeof wind !== 'undefined') wind.diffusion = n;
-    if (typeof meta !== 'undefined') meta.diffusion = n;
 }
 function setLifetime(v) {
     var n = parseInt(v);
     document.getElementById('val-lifetime').textContent = n;
-    if (typeof wind !== 'undefined') wind.lifetime = n;
-    if (typeof meta !== 'undefined') meta.lifetime = n;
+    if (typeof params !== 'undefined') params.cloudLifetimeDays = n;
 }
 function setParticles(v) {
     var n = parseInt(v);
-    document.getElementById('val-particles').textContent = n.toLocaleString();
-    if (typeof wind !== 'undefined') wind.numParticles = n;
-    if (typeof meta !== 'undefined') meta.numParticles = n;
+    document.getElementById('val-particles').textContent = n;
+    if (typeof params !== 'undefined') params.particleCount = n;
 }
 function toggleTrajectories() {
     var tog = document.getElementById('toggle-trajectories');
     tog.classList.toggle('off');
     var on = !tog.classList.contains('off');
-    var tracers = document.getElementById('tracers');
-    if (tracers) tracers.style.display = on ? 'block' : 'none';
-    if (typeof meta !== 'undefined') meta['show trajectories'] = on;
+    if (typeof params !== 'undefined') params.showTrajectories = on;
 }
 function toggleCurrents() {
     var tog = document.getElementById('toggle-currents');
     tog.classList.toggle('off');
     var on = !tog.classList.contains('off');
-    var canvas = document.getElementById('canvas');
-    if (canvas) canvas.style.opacity = on ? '1' : '0';
-    if (typeof meta !== 'undefined') meta['show currents'] = on;
+    if (typeof meta !== 'undefined') meta.showCurrents = on;
 }
 function toggleRetina() {
     var tog = document.getElementById('toggle-retina');

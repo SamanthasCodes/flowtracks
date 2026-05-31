@@ -1,0 +1,18 @@
+{
+  "name": "flowtracks",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "CSE 512 final project — ocean plastic flow visualization (test harness)",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.4",
+    "vitest-canvas-mock": "^0.3.3"
+  }
+}
