@@ -223,31 +223,85 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 .sim-footer {
     flex-shrink: 0;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     padding: 10px 20px 14px;
     background: transparent;
 }
-.sim-footer-divider {
-    width: 100%;
-    border: none;
-    border-top: 2px solid rgba(200,240,60,0.45);
-    margin-bottom: 12px;
+.sim-footer-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 28px;
+    margin-left: 268px;
+}
+.sim-footer-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+.footer-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.footer-legend-title {
+    font-family: 'Cormorant SC', serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: rgba(240,237,232,0.7);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.footer-legend-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 2px;
+    overflow: visible;
+    width: 420px;
+    height: 10px;
+}
+.footer-legend-ends {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Cormorant SC', serif;
+    font-size: 10px;
+    color: rgba(240,237,232,0.55);
+    width: 175px;
 }
 .sim-footer-reset {
     background: transparent;
     border: 1.5px solid rgba(200,240,60,0.6);
     border-radius: 40px;
-    padding: 8px 48px;
+    padding: 8px 32px;
     cursor: pointer;
     font-family: 'Cormorant SC', serif;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 300;
     letter-spacing: 2px;
     color: #c8f03c;
     transition: background 0.25s ease, color 0.25s ease;
 }
 .sim-footer-reset:hover { background: #c8f03c; border-color: #c8f03c; color: #031a14; }
+.sim-footer-about {
+    background: transparent;
+    border: 1.5px solid rgba(77,216,192,0.6);
+    border-radius: 40px;
+    padding: 8px 32px;
+    cursor: pointer;
+    font-family: 'Cormorant SC', serif;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: #4dd8c0;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+.sim-footer-about:hover { background: #2ab8a0; border-color: #2ab8a0; color: #031a14; }
+
 
 /* ---- Map ---- */
 /* Wrapper fills available space inside the flex row; .sim-map gets explicit
@@ -646,7 +700,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
         </p>
 
         <br>
-        <p class="about-body">The choropleth colors each country by its projected annual plastic marine debris in 2025 (tonnes per year), so you can immediately see which nations contribute the most. The simulation lets you click any ocean region to release virtual particles that drift with real ocean currents, showing how plastic pollution can travel far from its source and spread unpredictably through turbulence.</p>
+        <p class="about-body">The choropleth colors each country by its projected annual plastic marine debris in 2025 (tonnes per year), so you can see which nations contribute the most. The simulation lets you click any ocean region to release virtual particles that drift with real ocean currents, showing how plastic pollution can travel far from its source and spread unpredictably through turbulence.</p>
 
         <br>
 
@@ -666,9 +720,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 
         <p class="about-body">Each dot on the map represents a single piece of plastic&mdash;a bottle forgotten at the beach, a net a fisherman lost, a straw tossed overboard. To make the scale tangible, here is what one ton of common ocean debris looks like:</p>
 
-        <br>
+        <!-- <br> -->
 
-        <table style="width:100%; max-width:700px; border-collapse:collapse; font-size:17px; margin:8px 0;">
+        <table style="width:100%; max-width:700px; border-collapse:collapse; font-family:'Cormorant', serif; font-size:23px; margin:8px auto;">
+
         <thead>
             <tr style="background:#0d3b66; color:#fff;">
             <th style="padding:6px 10px; text-align:left;">Item</th>
@@ -748,15 +803,15 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                     <div class="ctrl-tooltip">adjusts random small-scale turbulence; higher values make the particle cloud spread faster and farther.</div>
                     <div class="ctrl-header">
                         <span class="ctrl-label">Diffusion</span>
-                        <span class="ctrl-value" id="val-diffusion">0.001</span>
+                        <span class="ctrl-value" id="val-diffusion">0.0008</span>
                     </div>
                     <input type="range" class="ctrl-slider" id="sl-diffusion"
-                           min="0" max="0.002" step="0.0001" value="0.001"
+                           min="0" max="0.001" step="0.0001" value="0.0008"
                            oninput="setDiffusion(this.value)">
                 </div>
 
                 <div class="ctrl-item">
-                    <div class="ctrl-tooltip">adjusts how long the particle cloud remains visible; longer lifetimes allow the particle cloud to visibly drift farther across the oceans.</div>
+                    <div class="ctrl-tooltip">adjusts how long the particle cloud remains visible; longer lifetimes allow the particle cloud to drift farther across the oceans.</div>
                     <div class="ctrl-header">
                         <span class="ctrl-label">Lifetime (days)</span>
                         <span class="ctrl-value" id="val-lifetime">30</span>
@@ -808,7 +863,38 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
 
             </div>
-            <div class="sidebar-legend">
+
+            <div class="sidebar-chart">
+                <div class="sidebar-chart-title">How far does plastic travel?</div>
+                <div id="chartHost" class="sidebar-chart-host"></div>
+            </div>
+            <div style="flex-shrink:0;"></div>
+            
+        </div>
+
+        <div class="sim-map-wrapper">
+            <div class="sim-map">
+                <canvas id="coastline"></canvas>
+                <canvas id="canvas"></canvas>
+                <canvas id="land"></canvas>
+                <svg id="choropleth"></svg>
+                <!-- <div id="legend">
+                    <div class="legend-title">Plastic marine debris</div>
+                    <div class="legend-bar-container">
+                        <div class="legend-bar" id="legendBar"></div>
+                    </div>
+                    <div class="legend-labels" id="legendLabels"></div>
+                    <div class="legend-unit">tonnes / year (log scale)</div>
+                </div> -->
+                <canvas id="tracers"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+        <div class="sim-footer">
+        <div class="sim-footer-left">
+            <div class="sidebar-legend" style="border-top:none; padding:0;">
                 <div class="legend-lbl">Particle density</div>
                 <div class="legend-bar">
                     <!-- Rainbow stops matching SimCore.heatmapColor(0 .. 1) -->
@@ -821,42 +907,22 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
                 </div>
                 <div class="legend-ends"><span>sparse</span><span>dense</span></div>
             </div>
-            <div class="sidebar-chart">
-                <div class="sidebar-chart-title">How far does plastic travel?</div>
-                <div id="chartHost" class="sidebar-chart-host"></div>
-            </div>
-            <div style="flex-shrink:0;"></div>
-            <div class="sidebar-actions">
-                <button class="sidebar-btn sidebar-btn-about" style="margin-top:16px;" onclick="showOverlay('about')">ABOUT</button>
-            </div>
-        </div>
 
-        <div class="sim-map-wrapper">
-            <div class="sim-map">
-                <canvas id="coastline"></canvas>
-                <canvas id="canvas"></canvas>
-                <canvas id="land"></canvas>
-                <svg id="choropleth"></svg>
-                <div id="legend">
-                    <div class="legend-title">Plastic marine debris</div>
-                    <div class="legend-bar-container">
-                        <div class="legend-bar" id="legendBar"></div>
-                    </div>
-                    <div class="legend-labels" id="legendLabels"></div>
-                    <div class="legend-unit">tonnes / year (log scale)</div>
+            <div class="footer-legend">
+                <div class="legend-lbl">PLASTIC MARINE DEBRIS IN 2025 (TONES/YEAR)</div>
+                <div class="footer-legend-bar">
+                    <div class="legend-bar" id="legendBar" style="flex:1;height:10px;border-radius:2px;border:1px solid rgba(255,255,255,0.2);"></div>
                 </div>
-                <canvas id="tracers"></canvas>
+                <div class="legend-labels" id="legendLabels" style="position:relative;height:14px;width:175px;margin:2px 0 0 0;width:420px;"></div>
             </div>
         </div>
-
+        <div class="sim-footer-right">
+            <button class="sim-footer-about" onclick="showOverlay('about')">ABOUT</button>
+            <button class="sim-footer-reset" onclick="resetSim()">RESET</button>
+        </div>
     </div>
 
-    <div class="sim-footer">
-        <svg width="100%" height="8" style="display:block;margin-bottom:12px">
-            <line x1="0" y1="4" x2="100%" y2="4" stroke="#c8f03c" stroke-opacity="0.475" stroke-width="3" stroke-linecap="round"/>
-        </svg>
-        <button class="sim-footer-reset" onclick="resetSim()">RESET</button>
-    </div>
+
 
 </div>
 

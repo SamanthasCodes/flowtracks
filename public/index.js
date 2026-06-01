@@ -41,8 +41,8 @@ function drawChart() {
     chartCtx.clearRect(0, 0, cw, ch);
 
     if (chartClouds.length === 0) {
-        chartCtx.fillStyle = 'rgba(240,237,232,0.4)';
-        chartCtx.font = '12px "Cormorant SC", serif';
+        chartCtx.fillStyle = '#fff';
+        chartCtx.font = '15px "Cormorant SC", serif';
         chartCtx.textAlign = 'center';
         chartCtx.fillText('Click the ocean to release particles', cw / 2, ch / 2);
         chartCtx.textAlign = 'left';
@@ -60,7 +60,7 @@ function drawChart() {
     maxAge = Math.max(maxAge, 10);
     maxSpread = Math.max(maxSpread, 0.01);
 
-    var padL = 32, padR = 8, padT = 14, padB = 22;
+    var padL = 40, padR = 18, padT = 14, padB = 22;
     var plotW = cw - padL - padR;
     var plotH = ch - padT - padB;
 
@@ -74,18 +74,23 @@ function drawChart() {
         chartCtx.lineTo(padL + plotW, y);
         chartCtx.stroke();
     }
+        // Box around plot (MATLAB-style)
+    chartCtx.strokeStyle = 'rgba(74,216,192,0.3)';
+    chartCtx.lineWidth = 0.5;
+    chartCtx.strokeRect(padL, padT, plotW, plotH);
+
 
     // Y-axis tick labels \u2014 km (spread \u00d7 20000)
-    chartCtx.fillStyle = 'rgba(240,237,232,0.5)';
-    chartCtx.font = '10px "Cormorant", serif';
+    chartCtx.fillStyle = '#fff';
+    chartCtx.font = '16px "Cormorant", serif';
     chartCtx.textAlign = 'right';
     chartCtx.fillText((maxSpread * 20000).toFixed(0), padL - 3, padT + 8);
     chartCtx.fillText('0', padL - 3, padT + plotH + 3);
 
     // Rotated y-axis label
     chartCtx.save();
-    chartCtx.fillStyle = 'rgba(240,237,232,0.4)';
-    chartCtx.font = '9px "Cormorant SC", serif';
+    chartCtx.fillStyle = '#fff';
+    chartCtx.font = '16px "Cormorant SC", serif';
     chartCtx.textAlign = 'center';
     chartCtx.translate(9, padT + plotH / 2);
     chartCtx.rotate(-Math.PI / 2);
@@ -93,8 +98,8 @@ function drawChart() {
     chartCtx.restore();
 
     // X-axis tick labels \u2014 days (frames \u00d7 SECONDS_PER_FRAME / 86400)
-    chartCtx.fillStyle = 'rgba(240,237,232,0.5)';
-    chartCtx.font = '10px "Cormorant", serif';
+    chartCtx.fillStyle = '#fff';
+    chartCtx.font = '16px "Cormorant", serif';
     chartCtx.textAlign = 'center';
     chartCtx.fillText('0', padL, padT + plotH + 12);
     chartCtx.fillText(
@@ -103,8 +108,8 @@ function drawChart() {
     );
 
     // X-axis label
-    chartCtx.fillStyle = 'rgba(240,237,232,0.4)';
-    chartCtx.font = '9px "Cormorant SC", serif';
+    chartCtx.fillStyle = '#fff';
+    chartCtx.font = '16px "Cormorant SC", serif';
     chartCtx.textAlign = 'center';
     chartCtx.fillText('Time (days)', padL + plotW / 2, ch - 2);
 
@@ -714,8 +719,9 @@ function setupLegend() {
         el.style.position = 'absolute';
         el.style.left = (i / (binLabels.length - 1) * 100) + '%';
         el.style.transform = 'translateX(-50%)';
-        el.style.fontSize = '8px';
-        el.style.color = '#aaa';
+        el.style.fontFamily = "'Cormorant SC', serif";
+        el.style.fontSize = '14px';
+        el.style.color = 'rgba(240,237,232,0.55)';
         el.style.whiteSpace = 'nowrap';
         labelsContainer.appendChild(el);
     }
