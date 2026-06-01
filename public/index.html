@@ -351,6 +351,35 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 }
 
 /* ================================================================
+   SITE NAVIGATION BAR
+   ================================================================ */
+.site-nav {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 40px 20px;
+    border-top: 2px solid rgba(74,216,192,0.3);
+}
+.nav-btn {
+    background: transparent;
+    border: 1.5px solid rgba(77,216,192,0.6);
+    border-radius: 40px;
+    padding: 8px 28px;
+    cursor: pointer;
+    font-family: 'Cormorant SC', serif;
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: #4dd8c0;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    white-space: nowrap;
+}
+.nav-btn:hover { background: #2ab8a0; border-color: #2ab8a0; color: #ffffff; }
+.nav-btn.active { background: rgba(42,184,160,0.4); border-color: #2ab8a0; color: #031a14; }
+
+/* ================================================================
    OVERLAY SCREENS
    ================================================================ */
 .overlay {
@@ -411,7 +440,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     letter-spacing: -1px;
     line-height: 1.2;
     white-space: nowrap;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 .splash-stat .highlight { color: #c8f03c; }
 .splash-sub {
@@ -421,7 +450,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     color: #e5e9ea;
     letter-spacing: 0px;
     white-space: nowrap;
-    margin-bottom: 6px;
+    margin-bottom: 40px;
 }
 .splash-question {
     font-family: 'Cormorant', serif;
@@ -669,7 +698,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     <div class="splash-eyebrow">Ocean Pollution Flow Tracker</div>
     <div class="splash-stat">Every minute, <span class="highlight">one garbage truck of plastic</span> enters our oceans.</div>
     <div class="splash-sub">Carried by currents, turbulence, and time, plastic can travel far beyond where it first enters the water.</div>
-    <div class="splash-question" style="color:#4dd8c0;">How far does your trash <em>flow</em>?</div>
+    <div class="splash-question" style="color:#ffffff;">How far does your trash <em>flow</em>?</div>
     <button class="ocean-btn" onclick="showAbout()">Start Exploring</button>
 </div>
 
@@ -684,100 +713,119 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             <div class="about-eyebrow">ocean pollution flow tracker</div>
         </div>
 
-        <!-- <div class="about-heading">Where does my trash go?</div> -->
+        <div class="about-heading">About</div>
 
-        <!-- <p class="about-body"> -->
-            <!-- Plastic is one of the most widespread environmental pollutants on Earth.  -->
-            <!-- <span style="color:#c8f03c">Every minute, one garbage truck of plastic enters our oceans.</span>  -->
-            <!-- Plastic can travel far and wide, even to the deep sea, so tracking it is essential for understanding where it accumulates and improving cleanup and prevention efforts. -->
-        <!-- </p> -->
-        <!-- <p class="about-body">In the oceans, larger circulation patterns (hundreds of kilometers) transport debris across long distances while smaller turbulent motions (hundreds of meters) redistribute particles through the surrounding water, shaping how widely plastic disperses. Together, these dynamics make it difficult to track plastic's fate.</p>
-        <hr class="about-divider"> -->
-        <p class="about-body">FlowTracks simulates buoyant plastic fragments carried by ocean surface currents and the marine plastic debris introduced into the ocean in 2025. 
-            <!-- By releasing virtual particles and adjusting turbulence, you can observe how small and large motions in ocean affect where pollution travels. -->
-        </p>
+        <p class="about-body">Every minute, <span style="color:#c8f03c">one garbage truck of plastic</span> enters our oceans. This <span style="color:#4dd8c0">pollution can travel far and wide</span>, from high mountain environments to the deep sea, impacting even the most remote locations. Tracking plastic pollution is essential for understanding where it <span style="color:#4dd8c0">accumulates</span>, how widely the particles <span style="color:#4dd8c0">disperse</span>, and how scientists and environmental groups can better target <span style="color:#4dd8c0">cleanup and prevention efforts</span>.</p>
 
-        <br>
-        <p class="about-body">The choropleth colors each country by its projected annual plastic marine debris in 2025 (tonnes per year), so you can see which nations contribute the most. The simulation lets you click any ocean region to release virtual particles that drift with real ocean currents, showing how plastic pollution can travel far from its source and spread unpredictably through turbulence.</p>
+        <p class="about-body" style="margin-top:8px;">In the oceans, plastic swiftly flows into a restless system of <span style="color:#4dd8c0">currents, eddies, and turbulence</span>. Smaller turbulent motions redistribute particles through the surrounding water, shaping <span style="color:#4dd8c0">how widely pollution disperses</span>, while larger circulation patterns transport debris across long distances and influence <span style="color:#4dd8c0">where plastic accumulates</span>. Together, <span style="color:#4dd8c0">these dynamics make it difficult to track plastic's path</span>, model where it accumulates, and implement targeted cleanup interventions.</p>
 
-        <br>
+        <p class="about-body" style="margin-top:8px;">FlowTracks is an <span style="color:#4dd8c0">interactive simulation</span> that lets users explore how ocean motion can influence plastic pollution. By <span style="color:#4dd8c0">releasing virtual particles</span> and <span style="color:#4dd8c0">adjusting turbulence</span>, users can observe how changes in <span style="color:#4dd8c0">ocean mixing affect where pollution travels</span>, how widely it spreads, and where it may accumulate. Rather than treating plastic pollution as a distant or invisible problem, <span style="color:#4dd8c0">FlowTracks invites users to experiment</span> with the dynamics that make ocean plastic difficult to track, model, and manage.</p>
 
-        <!-- <div class="about-heading">How to Use</div>
-        <div class="about-section-sub">Click anywhere on the map to release particles into the ocean. Use the controls in the sidebar to shape how the simulation behaves.</div>
+        <div style="display:flex; justify-content:center; margin-top:24px;">
+            <button class="ocean-btn" style="margin-top:0;" onclick="navigateTo('sim')">Start Tracking</button>
+        </div>
 
-        <div class="ctrl-list">
-            <div class="ctrl-row"><span class="ctrl-name">Diffusion</span><span class="ctrl-desc">adjusts random small-scale turbulence; higher values make the particle cloud spread faster and farther.</span></div>
-            <div class="ctrl-row"><span class="ctrl-name">Lifetime</span><span class="ctrl-desc">adjusts how long the particle cloud remains visible; longer lifetimes allow the particle cloud to visibly drift farther across the oceans.</span></div>
-            <div class="ctrl-row"><span class="ctrl-name">Particle Count</span><span class="ctrl-desc">adjusts how many particles are released per click; higher counts create a denser view of the spreading pattern.</span></div>
-            <div class="ctrl-row"><span class="ctrl-name">Trajectories</span><span class="ctrl-desc">controls particle trails; toggle on to trace past movement or off for a cleaner view of only current particle cloud positions.</span></div>
-            <div class="ctrl-row"><span class="ctrl-name">Currents</span><span class="ctrl-desc">controls ocean current labels; toggle on to identify large-scale flows that may influence particle movement.</span></div>
-            <div class="ctrl-row"><span class="ctrl-name">Retina Resolution</span><span class="ctrl-desc">controls canvas sharpness for high-resolution screens; toggle off to enhance performance if simulation runs slowly.</span></div>
-        </div> -->
+        <hr class="about-divider">
 
-        <!-- <hr class="about-divider"> -->
+        <!-- image placeholder — photos of marine debris go here -->
 
-        <p class="about-body">Each dot on the map represents a single piece of plastic&mdash;a bottle forgotten at the beach, a net a fisherman lost, a straw tossed overboard. To make the scale tangible, here is what one ton of common ocean debris looks like:</p>
-
-        <!-- <br> -->
-
-        <table style="width:100%; max-width:700px; border-collapse:collapse; font-family:'Cormorant', serif; font-size:23px; margin:8px auto;">
-
-        <thead>
-            <tr style="background:#0d3b66; color:#fff;">
-            <th style="padding:6px 10px; text-align:left;">Item</th>
-            <th style="padding:6px 10px; text-align:right;">Weight per piece</th>
-            <th style="padding:6px 10px; text-align:right;">Pieces per tonne</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
-            <td style="padding:5px 10px;">Plastic water bottle (500&nbsp;ml)</td>
-            <td style="padding:5px 10px; text-align:right;">~20&nbsp;g</td>
-            <td style="padding:5px 10px; text-align:right; font-weight:600;">50,000</td>
-            </tr>
-            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
-            <td style="padding:5px 10px;">Carrier bag</td>
-            <td style="padding:5px 10px; text-align:right;">~7&nbsp;g</td>
-            <td style="padding:5px 10px; text-align:right; font-weight:600;">~143,000</td>
-            </tr>
-            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
-            <td style="padding:5px 10px;">Disposable cutlery set</td>
-            <td style="padding:5px 10px; text-align:right;">~4&nbsp;g</td>
-            <td style="padding:5px 10px; text-align:right; font-weight:600;">~250,000</td>
-            </tr>
-            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
-            <td style="padding:5px 10px;">Straw</td>
-            <td style="padding:5px 10px; text-align:right;">~0.4&nbsp;g</td>
-            <td style="padding:5px 10px; text-align:right; font-weight:600;">~2.5&nbsp;million</td>
-            </tr>
-            <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
-            <td style="padding:5px 10px;">Small gillnet</td>
-            <td style="padding:5px 10px; text-align:right;">~5&nbsp;kg</td>
-            <td style="padding:5px 10px; text-align:right; font-weight:600;">~200</td>
-            </tr>
-            <!-- <tr style="background:rgba(255,255,255,0.5);border-bottom:1px solid #444;">
-            <td style="padding:5px 10px;">Large trawl-net fragment</td>
-            <td style="padding:5px 10px; text-align:right;">~50&nbsp;kg</td>
-            <td style="padding:5px 10px; text-align:right; font-weight:600;">~20</td>
-            </tr> -->
-        </tbody>
-        </table>
-
-        <!-- <br> -->
-
-        <!-- <p class="about-body">Click any ocean region to release a cloud of virtual particles and watch them drift with the surface currents. A sidebar chart tracks the cloud's spreading over time. Use the control panel to adjust how many particles are released, how much small-scale turbulence (diffusion) they experience, and how long the cloud survives before fading. Toggle the ocean-current labels and the particle trajectory trails on or off.</p>
-
-        <p class="about-body">Small-scale turbulence (the &ldquo;Diffusion&rdquo; slider) dramatically widens the spread of particles, even though the large-scale currents determine which gyre they end up in. The colored heatmap shows which regions particles visit most frequently.</p> -->
-
-        <!-- <hr class="about-divider"> -->
+        <hr class="about-divider">
 
     </div>
-    <div class="about-footer">
-        <button class="ocean-btn" onclick="enterSim()">Start Tracking</button>
+    <div class="site-nav">
+        <button class="nav-btn" onclick="navigateTo('home')">Home</button>
+        <button class="nav-btn active">About</button>
+        <button class="nav-btn" onclick="navigateTo('sim')">Simulation</button>
+        <button class="nav-btn" onclick="navigateTo('howto')">How to Use</button>
+        <button class="nav-btn" onclick="navigateTo('methods')">Data &amp; Methods</button>
     </div>
 </div>
 
 <!-- onboarding no longer used as separate screen -->
+
+<!-- ================================================================
+     HOW TO USE
+     ================================================================ -->
+<div id="howto" class="overlay" style="display:none">
+    <div class="about-inner">
+
+        <div class="about-header-box">
+            <div class="about-wordmark">FlowTracks</div>
+            <div class="about-eyebrow">ocean pollution flow tracker</div>
+        </div>
+
+        <div class="about-heading">How to Use</div>
+
+        <p class="about-body">FlowTracks lets you release virtual plastic particles into the ocean and watch how currents and turbulence carry them across the globe.</p>
+
+        <p class="about-body" style="margin-top:8px;">Click anywhere on the ocean to release a cloud of particles. Each particle is a virtual tracer representing a piece of floating plastic. For the best experience, release one cloud at a time and allow it to drift before clicking again. The particle spread remains on screen until you press Reset. Clicking on land will not release particles.</p>
+
+        <hr class="about-divider">
+
+        <div class="about-heading" style="font-size:32px;">Controls</div>
+
+        <div class="ctrl-list" style="margin-top:12px;">
+            <div class="ctrl-row"><span class="ctrl-name">Diffusion</span><span class="ctrl-desc">adjusts random small-scale turbulence; higher values make the particle cloud spread faster and farther.</span></div>
+            <div class="ctrl-row"><span class="ctrl-name">Lifetime</span><span class="ctrl-desc">adjusts how long the particle cloud remains visible; longer lifetimes allow the particle cloud to visibly drift farther across the oceans.</span></div>
+            <div class="ctrl-row"><span class="ctrl-name">Particle Count</span><span class="ctrl-desc">adjusts how many virtual tracer particles are released per click; higher counts create a denser view of the spreading pattern.</span></div>
+            <div class="ctrl-row"><span class="ctrl-name">Currents</span><span class="ctrl-desc">controls ocean current labels; toggle on to identify large-scale flows that may influence particle movement.</span></div>
+            <div class="ctrl-row"><span class="ctrl-name">Retina Resolution</span><span class="ctrl-desc">controls canvas sharpness for high-resolution screens; toggle off to enhance performance if simulation runs slowly.</span></div>
+        </div>
+
+        <hr class="about-divider">
+
+        <div class="about-heading" style="font-size:32px;">The Map</div>
+
+        <p class="about-body" style="margin-top:12px;">The country colors show projected plastic marine debris entering the ocean in 2025 (tonnes per year). Hover over any country to see its name and estimated contribution. The particle density heatmap shows where particles have concentrated over time.</p>
+
+        <hr class="about-divider">
+
+        <div class="about-heading" style="font-size:32px;">The Spread Chart</div>
+
+        <p class="about-body" style="margin-top:12px;">The sidebar chart tracks how far your particle cloud spreads over time. Each new release appears as a separate colored line. Press Reset to clear all releases and start fresh.</p>
+
+        <hr class="about-divider">
+
+    </div>
+    <div class="site-nav">
+        <button class="nav-btn" onclick="navigateTo('home')">Home</button>
+        <button class="nav-btn" onclick="navigateTo('about')">About</button>
+        <button class="nav-btn" onclick="navigateTo('sim')">Simulation</button>
+        <button class="nav-btn active">How to Use</button>
+        <button class="nav-btn" onclick="navigateTo('methods')">Data &amp; Methods</button>
+    </div>
+</div>
+
+<!-- ================================================================
+     DATA & METHODS
+     ================================================================ -->
+<div id="methods" class="overlay" style="display:none">
+    <div class="about-inner">
+
+        <div class="about-header-box">
+            <div class="about-wordmark">FlowTracks</div>
+            <div class="about-eyebrow">ocean pollution flow tracker</div>
+        </div>
+
+        <div class="about-heading">Data &amp; Methods</div>
+
+        <p class="about-body">Scientific writeup coming soon.</p>
+
+        <hr class="about-divider">
+
+        <p class="about-body">References coming soon.</p>
+
+        <hr class="about-divider">
+
+    </div>
+    <div class="site-nav">
+        <button class="nav-btn" onclick="navigateTo('home')">Home</button>
+        <button class="nav-btn" onclick="navigateTo('about')">About</button>
+        <button class="nav-btn" onclick="navigateTo('sim')">Simulation</button>
+        <button class="nav-btn" onclick="navigateTo('howto')">How to Use</button>
+        <button class="nav-btn active">Data &amp; Methods</button>
+    </div>
+</div>
 
 <!-- ================================================================
      MAIN SIMULATION
@@ -895,7 +943,6 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             <div class="sidebar-legend" style="border-top:none; padding:0;">
                 <div class="legend-lbl">Particle density</div>
                 <div class="legend-bar">
-                    <!-- Rainbow stops matching SimCore.heatmapColor(0 .. 1) -->
                     <div style="flex:1;background:rgb(0, 0, 255)"></div>
                     <div style="flex:1;background:rgb(0, 170, 255)"></div>
                     <div style="flex:1;background:rgb(85, 255, 170)"></div>
@@ -915,8 +962,12 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             </div>
         </div>
         <div class="sim-footer-right">
-            <button class="sim-footer-about" onclick="showOverlay('about')">ABOUT</button>
-            <button class="sim-footer-reset" onclick="resetSim()">RESET</button>
+            <button class="nav-btn" onclick="navigateTo('home')">Home</button>
+            <button class="nav-btn" onclick="navigateTo('about')">About</button>
+            <button class="nav-btn active">Simulation</button>
+            <button class="nav-btn" onclick="navigateTo('howto')">How to Use</button>
+            <button class="nav-btn" onclick="navigateTo('methods')">Data &amp; Methods</button>
+            <button class="sim-footer-reset" onclick="resetSim()">Reset</button>
         </div>
     </div>
 
@@ -948,7 +999,7 @@ if (!FEATURE_TRAJECTORIES) {
 // ---- Falling particles on splash ----
 (function () {
     var container = document.getElementById('splashParticles');
-    for (var i = 0; i < 38; i++) {
+    for (var i = 0; i < 80; i++) {
         var el = document.createElement('div');
         el.className = 'sp';
         var size = 2 + Math.random() * 3;
@@ -1013,6 +1064,31 @@ function fadeIn(id) {
     });
 }
 function showAbout()  { fadeIn('about'); fadeOut('splash'); }
+
+function navigateTo(dest) {
+    var overlays = ['about', 'howto', 'methods'];
+    var current = null;
+    overlays.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.style.display !== 'none' && el.style.opacity !== '0') current = id;
+    });
+    var page = document.querySelector('.page');
+    var simVisible = page && page.style.visibility === 'visible';
+
+    if (dest === 'home') {
+        if (current) fadeOut(current);
+        if (simVisible) { page.style.visibility = 'hidden'; }
+        fadeIn('splash');
+    } else if (dest === 'sim') {
+        if (current) fadeOut(current);
+        page.style.visibility = 'visible';
+        if (typeof recomputeLayout === 'function') setTimeout(recomputeLayout, 650);
+    } else {
+        if (current) fadeOut(current);
+        if (simVisible) { /* keep sim visible behind overlay */ }
+        fadeIn(dest);
+    }
+}
 
 function enterSim() {
     var page = document.querySelector('.page');
