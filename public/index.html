@@ -1184,6 +1184,9 @@ function fadeIn(id) {
     var el = document.getElementById(id);
     el.style.display = 'flex';
     el.style.opacity = 0;
+    // Reset scroll to top
+    var inner = el.querySelector('.about-inner');
+    if (inner) inner.scrollTop = 0;
     requestAnimationFrame(function () {
         requestAnimationFrame(function () {
             el.style.transition = 'opacity 0.5s ease';
