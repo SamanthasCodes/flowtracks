@@ -748,7 +748,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
             </div>
 
             <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:14px;">
-                <p class="about-body">Within the simulation, country colors show <span style="color:#4dd8c0">projected annual marine plastic debris</span> in 2025, measured in tonnes per year. The <span style="color:#4dd8c0">ocean current overlay</span> shows the moving surface system that can transport debris after it enters the water. Each <span style="color:#4dd8c0">drifting dot</span> represents a virtual tracer for a piece of floating plastic. For a full walkthrough, visit <span style="color:#c8f03c">How to Use</span>.</p>
+                <p class="about-body">Within the simulation, country colors show <span style="color:#4dd8c0">projected annual marine plastic debris</span> entering the ocean in 2025, measured in tonnes per year. The <span style="color:#4dd8c0">ocean current overlay</span> traces the surface system that carries debris once it enters the water. For a full walkthrough of the simulation controls and features, visit <span style="color:#c8f03c">How to Use</span>.</p>
+
+                <p class="about-body" style="margin-top:10px;">Each <span style="color:#4dd8c0">dot drifting across the map</span> gives form to something that is otherwise invisible: a piece of plastic pollution — a forgotten bottle, a lost fishing net, a straw carried out to sea by the <span style="color:#4dd8c0">same currents you see on the map</span>. The <span style="color:#c8f03c">sheer volume of plastic</span> entering our oceans every year is difficult to picture. Here is what a <span style="color:#4dd8c0">single tonne</span> of common debris looks like:</p>
 
                 <table style="width:100%;border-collapse:collapse;font-family:'Cormorant',serif;font-size:17px;letter-spacing:-0.3px;">
                     <thead>
@@ -883,6 +885,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
         <div class="about-heading">Data &amp; Methods</div>
 
         <p class="about-body">FlowTracks simulates buoyant plastic fragments carried by ocean surface currents and visualizes projected marine plastic debris entering the ocean in 2025. The simulation combines country-level estimates of annual marine plastic debris with ocean current data to help users explore how plastic pollution may move, spread, and accumulate once it enters the marine environment.</p>
+
+        <p class="about-body" style="margin-top:8px;">Ocean plastic transport operates across two distinct spatial scales. <span style="color:#4dd8c0">Large-scale circulation patterns</span>, such as gyres and boundary currents, operate at the scale of <span style="color:#4dd8c0">hundreds of kilometers</span>, transporting debris across ocean basins over weeks to months. <span style="color:#4dd8c0">Smaller turbulent motions</span>, including eddies and mixing processes, operate at the scale of <span style="color:#4dd8c0">hundreds of meters</span>, redistributing particles through the surrounding water and driving lateral dispersion within a cloud of debris.</p>
+
+        <p class="about-body" style="margin-top:8px;">In FlowTracks, these dynamics are represented through two parameters users can control directly. The <span style="color:#4dd8c0">ocean current field</span> drives large-scale advection, moving particles along realistic surface current pathways derived from OSCAR satellite data. The <span style="color:#4dd8c0">diffusion slider</span> represents small-scale turbulence, adding a random walk component to each particle's trajectory at every time step. Higher diffusion values produce wider, faster-spreading clouds; lower values keep particles more tightly clustered along the dominant current path. Together, these two components allow users to observe how the interplay between large-scale transport and small-scale mixing shapes where plastic accumulates and how widely it disperses.</p>
 
         <div style="margin-top:16px;padding:16px 20px;border:1px dashed rgba(74,216,192,0.3);border-radius:10px;background:rgba(74,216,192,0.04);">
             <p style="font-family:'Cormorant SC',serif;font-size:14px;letter-spacing:2px;color:#4dd8c0;margin-bottom:8px;">PENDING · JULIO</p>
