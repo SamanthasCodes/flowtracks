@@ -892,7 +892,11 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
 
         <p class="about-body" style="margin-top:8px;">In FlowTracks, these dynamics are represented through two parameters users can control directly. The <span style="color:#4dd8c0">ocean current field</span> drives large-scale advection, moving particles along realistic surface current pathways. The <span style="color:#4dd8c0">diffusion slider</span> represents small-scale turbulence, adding a random walk component to each particle's trajectory at every time step. Higher diffusion values produce wider, faster-spreading clouds; lower values keep particles more tightly clustered along the dominant current path. Together, these two components allow users to observe how the interplay between large-scale transport and small-scale mixing shapes where plastic accumulates and how widely it disperses.</p>
 
-        <p class="about-body" style="margin-top:8px;">Ocean surface currents come from the <span style="color:#4dd8c0">OSCAR (Ocean Surface Current Analysis Real-time)</span> dataset, in daily 1/3-degree velocity fields. These are pre-rendered per day as a PNG (u/v encoded in RG channels) plus JSON metadata, for faster processing. Country-level marine debris projections for 2025 come from the <span style="color:#4dd8c0">Jambeck et al. (2015)</span> dataset, loaded as a CSV with columns for coastal population, waste generation rates, plastic fraction, mismanagement percentage, and computed tonnes/year of plastic marine debris. Each CSV country name is mapped to its Natural Earth equivalent using a lookup table. The SVG overlay uses a Pacific-centered projection rotated to [180, 0] to match the OSCAR 0-360 grid to fill the full 2:1 viewport. A hover tooltip displays coastal population and debris tonnage, positioned with viewport boundary detection.</p>
+        <p class="about-body" style="margin-top:8px;">The following describes the data sources and technical implementation underlying these dynamics.</p>
+
+        <p class="about-body" style="margin-top:8px;">Ocean surface currents come from the <span style="color:#4dd8c0">OSCAR (Ocean Surface Current Analysis Real-time)</span> dataset, in daily 1/3-degree velocity fields, pre-rendered as PNG files with u/v components encoded in the RG channels plus JSON metadata for efficient in-browser processing. Country-level marine debris projections for 2025 come from the <span style="color:#4dd8c0">Jambeck et al. (2015)</span> dataset, loaded as a CSV with columns for coastal population, waste generation rates, plastic fraction, mismanagement percentage, and computed tonnes per year of plastic marine debris. Each country name is mapped to its Natural Earth equivalent using a lookup table.</p>
+
+        <p class="about-body" style="margin-top:8px;">The choropleth SVG overlay uses a Pacific-centered equirectangular projection rotated to [180, 0] to align with the OSCAR 0&ndash;360 longitude grid, filling the full 2:1 viewport. A hover tooltip displays each country's coastal population and estimated debris tonnage, with position clamped to viewport boundaries.</p>
 
         <p class="about-body" style="margin-top:8px;">To move the particles, each frame runs <span style="color:#4dd8c0">forward-Euler integration</span> on a <span style="color:#4dd8c0">720 x 360 bilinearly interpolated velocity grid</span>. Particles wrap at longitude boundaries, clamp at latitude boundaries, and freeze on land. On mouse click, a cloud of particles (default 50, adjustable 1&ndash;50) is released with a <span style="color:#4dd8c0">Gaussian spread</span>. The path history of each particle is stored for trail rendering, and residence density is accumulated onto a <span style="color:#4dd8c0">360 x 180 heatmap grid</span> that is rendered as a log-scaled dark-to-bright green overlay (cells below 3 hits are transparent). Cloud lifetime is computed from the user's day setting, and the spread metric (RMS distance from centroid over ocean-resident particles) drives the Particle Spread Over Time plot.</p>
 
@@ -1174,7 +1178,12 @@ document.querySelectorAll('.ctrl-item').forEach(function(item) {
         var tip = item.querySelector('.ctrl-tooltip');
         if (!tip) return;
         var rect = item.getBoundingClientRect();
-        tip.style.left = (rect.right + 10) + 'px';
+        var tipWidth = 210;
+        var leftPos = rect.right + 10;
+        if (leftPos + tipWidth > window.innerWidth) {
+            leftPos = rect.left - tipWidth - 10;
+        }
+        tip.style.left = leftPos + 'px';
         tip.style.top  = rect.top + 'px';
     });
 });
