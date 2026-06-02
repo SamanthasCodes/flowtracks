@@ -678,30 +678,32 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'DM Sans', 
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.15s;
-    background: rgba(0, 0, 0, 0.82);
-    color: #eee;
-    font-size: 11px;
+    background: rgba(6,26,46,0.92);
+    color: #f0ede8;
+    font-family: 'Cormorant SC', serif;
+    font-size: 15px;
+    letter-spacing: 0.5px;
     padding: 8px 12px;
-    border-radius: 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(74,216,192,0.4);
     z-index: 1000;
     line-height: 1.5;
-    max-width: 240px;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    max-width: 320px;
 }
 #tooltip.visible { opacity: 1; }
 #tooltip .tt-name {
     font-weight: 700;
-    font-size: 12px;
-    color: #fff;
-    margin-bottom: 2px;
+    font-size: 16px;
+    color: #4dd8c0;
+    margin-bottom: 4px;
 }
 #tooltip .tt-row {
     display: flex;
     justify-content: space-between;
     gap: 12px;
 }
-#tooltip .tt-label { color: #999; }
-#tooltip .tt-value { color: #eee; text-align: right; }
+#tooltip .tt-label { color: rgba(240,237,232,0.55); }
+#tooltip .tt-value { color: #f0ede8; text-align: right; }
 </style>
 </head>
 <body>
