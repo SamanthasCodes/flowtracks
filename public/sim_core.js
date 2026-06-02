@@ -12,8 +12,8 @@
 
     var BIN_THRESHOLDS = [0, 1, 10, 100, 1000, 10000, 100000, 1000000, 5000000];
     var BIN_COLORS = [
-        '#ffffcc', '#ffeda0', '#fed976', '#feb24c',
-        '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026'
+        '#0a1a05', '#163008', '#24500d', '#3a7212',
+        '#548f18', '#78ab22', '#a0cc2e', '#c8f03c'
     ];
 
     var NAME_MAP = {

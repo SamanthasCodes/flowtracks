@@ -643,7 +643,7 @@ function renderChoropleth() {
         .attr('d', geoPath)
         .attr('fill', function (d) {
             var data = choroplethData.lookup[d.properties.name];
-            if (!data) return '#2a2a2a';
+            if (!data) return '#888888';
             return SimCore.logBinColor(
                 data.md2025 || 0,
                 SimCore.BIN_THRESHOLDS,
@@ -753,12 +753,11 @@ function fitSimMap() {
     var availH = wrapper.clientHeight - pt - pb;
     if (availW <= 0 || availH <= 0) return;
 
+    // Fill the largest 2:1 box that fits the wrapper
     var W, H;
     if (availW <= availH * 2) {
-        // Width-bound — use full width, derive height
         W = availW; H = availW / 2;
     } else {
-        // Height-bound — use full height, derive width
         W = availH * 2; H = availH;
     }
     simMap.style.width  = W + 'px';
@@ -808,38 +807,39 @@ if (typeof window !== 'undefined') {
 // CURRENTS OVERLAY (smoothed polylines + arrows + labels)
 // ================================================================
 
+var currentLabelPositions = [];
 var currentPaths = [
-    { name: 'Gulf Stream', color: '#e03030',
+    { name: 'Gulf Stream', color: '#4dd8c0',
       path: [[-80,24],[-79,27],[-80,30],[-77,33],[-74,36],[-70,39],
              [-65,39],[-58,41],[-50,40],[-42,43]] },
-    { name: 'N. Atlantic Drift', color: '#e03030',
+    { name: 'N. Atlantic Drift', color: '#4dd8c0',
       path: [[-42,47],[-36,49],[-29,50],[-22,52],[-15,55],[-8,57],[0,58]] },
-    { name: 'Kuroshio', color: '#e03030',
+    { name: 'Kuroshio', color: '#4dd8c0',
       path: [[117,18],[124,22],[132,26],[128,29],[135,32],
              [139,34],[142,35],[150,34],[158,35],[166,36]] },
-    { name: 'N. Pacific Current', color: '#e03030',
+    { name: 'N. Pacific Current', color: '#4dd8c0',
       path: [[166,38],[174,39],[180,40],[-175,40],[-170,39],
              [-164,38],[-156,37],[-148,36],[-140,35]] },
-    { name: 'North Equatorial (Pacific)', color: '#e03030',
+    { name: 'North Equatorial (Pacific)', color: '#4dd8c0',
       path: [[-170,15],[-160,15],[-150,14],[-140,14],[-130,13],[-120,13],[-110,12]] },
-    { name: 'N. Eq. (Atlantic)', color: '#e03030',
+    { name: 'N. Eq. (Atlantic)', color: '#4dd8c0',
       path: [[-55,8],[-45,7],[-35,7],[-25,6],[-15,5]] },
-    { name: 'South Equatorial (Pacific)', color: '#e03030',
+    { name: 'South Equatorial (Pacific)', color: '#4dd8c0',
       path: [[-170,-3],[-160,-3],[-150,-3],[-140,-3],[-130,-3],
              [-120,-3],[-110,-3],[-100,-3],[-90,-3]] },
-    { name: 'S. Eq. (Atlantic)', color: '#e03030',
+    { name: 'S. Eq. (Atlantic)', color: '#4dd8c0',
       path: [[-40,-1],[-30,-1],[-20,-1],[-10,0],[-1,0]] },
-    { name: 'Eq. Countercurrent', color: '#e03030',
+    { name: 'Eq. Countercurrent', color: '#4dd8c0',
       path: [[150,5],[160,6],[170,7],[180,7],[-170,7],[-160,7],[-150,6],[-140,5]] },
-    { name: 'Brazil Current', color: '#e03030',
+    { name: 'Brazil Current', color: '#4dd8c0',
       path: [[-36,-15],[-36,-19],[-36,-23],[-43,-28],[-45,-32],[-49,-36],[-52,-40],[-54,-45]] },
-    { name: 'E. Australia', color: '#e03030',
+    { name: 'E. Australia', color: '#4dd8c0',
       path: [[156,-25],[157,-29],[157,-33],[154,-36],[153,-39],[152,-41]] },
-    { name: 'Agulhas', color: '#e03030',
+    { name: 'Agulhas', color: '#4dd8c0',
       path: [[43,-15],[40,-20],[38,-23],[36,-26],[35,-29],[33,-32],[26,-36],[27,-38],[40,-40]] },
-    { name: 'Alaska Current', color: '#e03030',
+    { name: 'Alaska Current', color: '#4dd8c0',
       path: [[-132,48],[-135,50],[-139,53],[-144,55],[-150,56],[-156,55]] },
-    { name: 'Monsoon Drift', color: '#e03030',
+    { name: 'Monsoon Drift', color: '#4dd8c0',
       path: [[95,-2],[85,-2],[75,-2],[65,-2],[55,-1],[45,0]] }
 ];
 
@@ -878,6 +878,7 @@ function drawArrow(ctx, x, y, angle, size) {
 // inherits from the same code).
 function drawCurrents(ctx, currents, opts) {
     opts = opts || {};
+    currentLabelPositions = [];
     if (opts.showCurrents === false) return;
     var cw = opts.cw;
     var ch = opts.ch;
@@ -943,15 +944,17 @@ function drawCurrents(ctx, currents, opts) {
         ctx.translate(bestSeg[mi].x, bestSeg[mi].y);
         ctx.rotate(langle);
         ctx.globalAlpha = 0.95;
-        ctx.font = 'bold ' + (25 * ratio) + 'px sans-serif';
+        ctx.font = '500 ' + (45 * ratio) + 'px "Cormorant SC", serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-        ctx.lineWidth = 3 * ratio;
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.lineWidth = 4 * ratio;
         ctx.strokeText(cur.name, 0, 0);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#ffffff';
         ctx.fillText(cur.name, 0, 0);
         ctx.restore();
+        // Store label position in canvas-pixel space for hover detection
+        currentLabelPositions.push({ name: cur.name, x: bestSeg[mi].x, y: bestSeg[mi].y });
     }
     ctx.globalAlpha = 1;
 }
@@ -1025,3 +1028,39 @@ if (typeof window !== 'undefined') {
     window.heatBins = heatBins;
     window.meta = meta;
 }
+
+// ---- Current name hover tooltip ----
+var currentTooltip = document.createElement('div');
+currentTooltip.style.cssText = [
+    'position:fixed', 'pointer-events:none', 'opacity:0',
+    'background:rgba(6,26,46,0.92)', 'color:#4dd8c0',
+    'border:1px solid rgba(74,216,192,0.4)', 'border-radius:8px',
+    'padding:6px 12px', 'font-family:"Cormorant SC",serif',
+    'font-size:16px', 'letter-spacing:1px',
+    'transition:opacity 0.15s', 'z-index:200', 'white-space:nowrap'
+].join(';');
+document.body.appendChild(currentTooltip);
+
+canvas.addEventListener('mousemove', function (e) {
+    var rect = tracerCanvas.getBoundingClientRect();
+    var scaleX = tracerCanvas.width / rect.width;
+    var mx = (e.clientX - rect.left) * scaleX;
+    var my = (e.clientY - rect.top) * (tracerCanvas.height / rect.height);
+    var found = null;
+    for (var i = 0; i < currentLabelPositions.length; i++) {
+        var lp = currentLabelPositions[i];
+        var dx = mx - lp.x, dy = my - lp.y;
+        if (Math.sqrt(dx * dx + dy * dy) < 80 * scaleX) { found = lp; break; }
+    }
+    if (found) {
+        currentTooltip.textContent = found.name;
+        currentTooltip.style.left = (e.clientX + 14) + 'px';
+        currentTooltip.style.top  = (e.clientY - 14) + 'px';
+        currentTooltip.style.opacity = '1';
+    } else {
+        currentTooltip.style.opacity = '0';
+    }
+});
+canvas.addEventListener('mouseleave', function () {
+    currentTooltip.style.opacity = '0';
+});
