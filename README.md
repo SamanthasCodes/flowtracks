@@ -32,7 +32,7 @@ The project combines projected marine plastic pollution estimates with ocean sur
 - **Julio Chavez** — particle dispersion modeling and simulation development
 - **Baback Elmieh** — project presentation and video production
 
-FlowTracks was developed as a collaborative final project for **CSE 512: Data Visualization** at the **University of Washington's Paul G. Allen School of Computer Science & Engineering** in Spring 2026.
+FlowTracks was developed as a collaborative final project for **CSE 512: Data Visualization** at the **University of Washington's Paul G. Allen School of Computer Science & Engineering** (Spring 2026). The project was originally developed and published through the university's [GitLab platform](https://gitlab.cs.washington.edu/cse512/26sp/fp/flowtracks), where the original repository and development history are maintained.
 
 ### 📗 Data & References
 
